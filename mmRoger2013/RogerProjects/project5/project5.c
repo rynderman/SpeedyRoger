@@ -15,8 +15,8 @@
 
 
 int project5_initialized = FALSE;
-double CONTROL_STEP = 0.5;
-
+double CONTROL_STEP = 1.0;
+int currentPos = 0;
 
 project5_control(roger)
 Robot* roger;
@@ -30,7 +30,10 @@ Robot* roger;
 		project5_initialized = TRUE;
 	}
 	
-   
+    if(currentPos >= 100){
+    	currentPos = 0; 
+    }
+    
     //project5_visualize(roger);
     
 	//relax harmonic function
@@ -39,7 +42,8 @@ Robot* roger;
     
     state = primitive4(roger);
     
-    compute_headings(roger);
+    CONTROL_STEP = 1.0;
+    compute_headings(roger,currentPos);
 }
 
 
@@ -449,8 +453,9 @@ Robot *roger;
 #define MAX_V        25.0
 
 // This should now be called compute_control_step
-compute_headings(roger)
+compute_headings(roger , curr)
 Robot* roger;
+int curr;
 {
     int i, j, xbin, ybin, already_used[NBINS][NBINS];
 	double compute_gradient(), mag, grad[2], x, y;
@@ -513,14 +518,14 @@ Robot* roger;
     double vel_g_cu[50];
     int k; 
     int size = sizeof(headings) / sizeof(int);
-    double a = 0.5;
+    double a = .06;
      
     for (k = 0 ; k < size - 1 ;k++){
         double current;
     	current = headings[k];
     	current = ((current-(3.1415/4.0))/(3.1415/4.0));
     	current = fabs(current);
-		current = current*MAX_V;
+		//current = current*MAX_V;
 		if(current > 1.0){
 		//	current = 1.0;
 		}
@@ -538,7 +543,7 @@ Robot* roger;
     } 
 	
 	average = average / (size);
-	printf("%f  \n" , vel_g_cu[0]  );
+	//printf("%f  \n" , vel_g_cu[0]  );
     high = average + ((high-average)/3.0);
 	low = average - ((average-low)/6.0);
 	
@@ -552,17 +557,17 @@ Robot* roger;
 		     // printf("%f \n" , vel_g_cu[k+1]);
     }
 
-
-	if(vel_g_cu[0] > high){
-		CONTROL_STEP = 1.5;
+	printf("%f \n" , vel_g_cu[curr]);
+	if(vel_g_cu[curr] > high){
+		//CONTROL_STEP = 1.5;
 	}
-	if((vel_g_cu[0] < high) && ( vel_g_cu[0] > low) ){
-		CONTROL_STEP = 0.1;
+	if((vel_g_cu[curr] < high) && ( vel_g_cu[curr] > low) ){
+		//CONTROL_STEP = 0.9;
 	}
-	if(vel_g_cu[0] < low){
-		CONTROL_STEP = 0.0;
+	if(vel_g_cu[curr] < low){
+		//CONTROL_STEP = 0.5;
 	}
-    
+    CONTROL_STEP = CONTROL_STEP*(1-vel_g_cu[curr]);
     
 }
 
