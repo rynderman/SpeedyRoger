@@ -15,7 +15,7 @@
 
 
 int project5_initialized = FALSE;
-double CONTROL_STEP = 1.0;
+double CONTROL_STEP = 3.5;
 int currentPos = 0;
 
 project5_control(roger)
@@ -42,7 +42,7 @@ Robot* roger;
     
     state = primitive4(roger);
     
-    CONTROL_STEP = 1.0;
+    CONTROL_STEP = 3.5;
     compute_headings(roger,currentPos);
 }
 
@@ -156,7 +156,7 @@ Robot* roger;
  This will be replaced with a goal
  */
 #define NUM_SEARCH_LOCATIONS 1
-double search_locations[NUM_SEARCH_LOCATIONS][2] = { {0.0, -1.5}};
+double search_locations[NUM_SEARCH_LOCATIONS][2] = { {0.0, -1.0}};
 /*
  / Initializes a set a search locations in the occupancy grid / potentential map
  / Can be called whenever you want to set/renew the search goals
@@ -518,7 +518,7 @@ int curr;
     double vel_g_cu[50];
     int k; 
     int size = sizeof(headings) / sizeof(int);
-    double a = .06;
+    double a = .01;
      
     for (k = 0 ; k < size - 1 ;k++){
         double current;
@@ -547,6 +547,9 @@ int curr;
     high = average + ((high-average)/3.0);
 	low = average - ((average-low)/6.0);
 	
+	int count = 0;
+	
+	for(count =0;count < 1000; count++){
     for (k = 0; k < size-1; k++){
         if (vel_g_cu[k]+a < vel_g_cu[k+1])
             vel_g_cu[k+1] = vel_g_cu[k]+a;
@@ -556,8 +559,8 @@ int curr;
            vel_g_cu[k-1] = vel_g_cu[k]+a;
 		     // printf("%f \n" , vel_g_cu[k+1]);
     }
-
-	printf("%f \n" , vel_g_cu[curr]);
+	}
+	//printf("%f \n" , vel_g_cu[curr]);
 	if(vel_g_cu[curr] > high){
 		//CONTROL_STEP = 1.5;
 	}
@@ -567,7 +570,7 @@ int curr;
 	if(vel_g_cu[curr] < low){
 		//CONTROL_STEP = 0.5;
 	}
-    CONTROL_STEP = CONTROL_STEP*(1-vel_g_cu[curr]);
+    //CONTROL_STEP = CONTROL_STEP*(1-vel_g_cu[curr]);
     
 }
 
