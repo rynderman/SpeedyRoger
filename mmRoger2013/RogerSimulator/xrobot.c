@@ -115,7 +115,7 @@ int argc;char **argv;
   // Roger interface structure
 	
   simulate_base(&mobile_base);
-  simulate_arm(mobile_base.wTb, arms);
+  //simulate_arm(mobile_base.wTb, arms);
   simulate_eyes(mobile_base.wTb, eyes);
   simulate_object(&object);
 	
@@ -260,6 +260,7 @@ int rst;
 		
     /************************************************************************/
     // LEFT AND RIGHT ARM
+    /*
     for (i=0;i<NARMS;++i) {
       for (j=0;j<NARM_FRAMES;++j) {
 	for (k=0;k<4;++k) {
@@ -276,32 +277,34 @@ int rst;
 	arms[i][j].extForce[1] = arms_home[i][j].extForce[1];
       }
     }
-		
+		*/
     /************************************************************************/
     // INITIALIZE THE WORLD GEOMETRY
-    for (i = 0; i < NBINS; ++i) {   // rows
-      for (j = 0; j < NBINS; ++j) {   // cols
+    for (i = 0; i < NYBINS; ++i) {   // rows
+      for (j = 0; j < NXBINS; ++j) {   // cols
+      
 	Roger.world_map.occupancy_map[i][j] = FREESPACE;
 	Roger.world_map.potential_map[i][j] = 1.0;
-	Roger.arm_map[LEFT].occupancy_map[i][j] = FREESPACE;
-	Roger.arm_map[LEFT].potential_map[i][j] = 1.0;
-	Roger.arm_map[RIGHT].occupancy_map[i][j] = FREESPACE;
-	Roger.arm_map[RIGHT].potential_map[i][j] = 1.0;
+	//Roger.arm_map[LEFT].occupancy_map[i][j] = FREESPACE;
+	//Roger.arm_map[LEFT].potential_map[i][j] = 1.0;
+	//Roger.arm_map[RIGHT].occupancy_map[i][j] = FREESPACE;
+	//Roger.arm_map[RIGHT].potential_map[i][j] = 1.0;
 	
 	// left and right walls
-	if ((j <= 0) || (j >= (NBINS - 1))) {
+	if ((j <= 0) || (j >= (NXBINS - 1))) {
 	  Roger.world_map.occupancy_map[i][j] = OBSTACLE;
 	  Roger.world_map.potential_map[i][j] = 1.0;
 	  Roger.world_map.color_map[i][j] = LIGHTGREEN;
 	}
 	// top and bottom walls
-	if ((i <= 0) || (i >= (NBINS - 1))) {
+	if ((i <= 0) || (i >= (NYBINS - 1))) {
 	  Roger.world_map.occupancy_map[i][j] = OBSTACLE;
 	  Roger.world_map.potential_map[i][j] = 1.0;
 	  Roger.world_map.color_map[i][j] = DARKBLUE;
 	}
       }
     }
+    printf("Hello Test Finished Initializing World Geometry\n");
 		
     //     // ***** the three room geometry *****
     //     // add room partitions to Cartesian map - horizonal wall
@@ -422,7 +425,7 @@ XtPointer client_data, call_data;
     enter_params();
   }
 }
-
+//remove / edit?
 void x_input_mode_proc(w, client_data, call_data)
 Widget w;
 XtPointer client_data, call_data;
@@ -632,7 +635,7 @@ void x_visualize_proc(w,client_data,call_data)
 
 void mark_used(ii,jj,aux)
 int ii, jj;
-int aux[NBINS][NBINS];
+int aux[NXBINS][NYBINS];
 {
   int j,k;
   double dist;
@@ -641,8 +644,8 @@ int aux[NBINS][NBINS];
     for (k=-STREAM_SPACE; k<=STREAM_SPACE; ++k) {
       dist = sqrt(SQR((double)j) + SQR((double)k));
       if ((dist < (2.0*STREAM_SPACE + 1.0)) &&
-	  ((ii+j) >= 0) && ((ii+j) < NBINS) &&
-	  ((jj+k) >= 0) && ((jj+k) < NBINS))
+	  ((ii+j) >= 0) && ((ii+j) < NYBINS) &&
+	  ((jj+k) >= 0) && ((jj+k) < NXBINS))
 	aux[ii+j][jj+k] = TRUE;
     }
   }
@@ -674,17 +677,17 @@ XtPointer client_data, call_data;
   compute_external_forces(&mobile_base, arms, &object);
 	
   simulate_base(&mobile_base);
-  simulate_arm(mobile_base.wTb, arms);
+  //simulate_arm(mobile_base.wTb, arms);
   simulate_eyes(mobile_base.wTb, eyes);
   simulate_object(&object);
 	
   if (render++ == RENDER_RATE) {
     if ((HISTORY) && (history_ptr < MAX_HISTORY)) {
-      history[history_ptr].arm_pos[LEFT][0] = arms[LEFT][1].theta;
-      history[history_ptr].arm_pos[LEFT][1] = arms[LEFT][2].theta;
+     // history[history_ptr].arm_pos[LEFT][0] = arms[LEFT][1].theta;
+     // history[history_ptr].arm_pos[LEFT][1] = arms[LEFT][2].theta;
       
-      history[history_ptr].arm_pos[RIGHT][0] = arms[RIGHT][1].theta;
-      history[history_ptr].arm_pos[RIGHT][1] = arms[RIGHT][2].theta;
+     // history[history_ptr].arm_pos[RIGHT][0] = arms[RIGHT][1].theta;
+     // history[history_ptr].arm_pos[RIGHT][1] = arms[RIGHT][2].theta;
 			
       history[history_ptr].base_pos[0] = mobile_base.x;
       history[history_ptr].base_pos[1] = mobile_base.y;
@@ -728,6 +731,7 @@ int reset;
       Roger.image[RIGHT][i][BLUE_CHANNEL] = 
 	world_colors[eyes[RIGHT].image[i]].blue;
   }
+  /*
   Roger.arm_theta[0][0] = arms[0][1].theta;
   Roger.arm_theta[0][1] = arms[0][2].theta;
   Roger.arm_theta[1][0] = arms[1][1].theta;
@@ -740,7 +744,7 @@ int reset;
   Roger.ext_force[0][Y] = arms[0][NARM_FRAMES - 1].extForce[Y];
   Roger.ext_force[1][X] = arms[1][NARM_FRAMES - 1].extForce[X];
   Roger.ext_force[1][Y] = arms[1][NARM_FRAMES - 1].extForce[Y];
-	
+	*/
   Roger.base_position[0] = mobile_base.x;
   Roger.base_position[1] = mobile_base.y;
   Roger.base_position[2] = mobile_base.theta;
@@ -750,19 +754,20 @@ int reset;
 	
   // zero efferents (write only)
   Roger.eye_torque[0] = Roger.eye_torque[1] = 0.0;
-  Roger.arm_torque[0][0]=Roger.arm_torque[0][1]=Roger.arm_torque[1][0]=
-    Roger.arm_torque[1][1] = 0.0;
+ // Roger.arm_torque[0][0]=Roger.arm_torque[0][1]=Roger.arm_torque[1][0]=
+  //  Roger.arm_torque[1][1] = 0.0;
   Roger.wheel_torque[0] = Roger.wheel_torque[1] = 0.0;
 }  
 
 read_interface()
 {
   // pass back torques (write only)
+  /*
   arms[0][1].torque = Roger.arm_torque[0][0];
   arms[1][1].torque = Roger.arm_torque[1][0];
   arms[0][2].torque = Roger.arm_torque[0][1];
   arms[1][2].torque = Roger.arm_torque[1][1];
-	
+	*/
   eyes[0].torque = Roger.eye_torque[0];
   eyes[1].torque = Roger.eye_torque[1];
 	
@@ -787,11 +792,12 @@ Obj * obj;
   // initialize forces on dynamic bodies: base, hands, object
   base->extForce[X] = base->extForce[Y] = 0.0;
   obj->extForce[X] = obj->extForce[Y] = 0.0;
+ /*
   for (i = 0; i < NARMS; ++i) {
     arms[i][NARM_FRAMES - 1].extForce[X] = 0.0;
     arms[i][NARM_FRAMES - 1].extForce[Y] = 0.0;
   }
-	
+	*/
   // define the position and radius of the NBODY dynamic bodies
   // BASE #0
   r[0][X] = base->x;
@@ -801,13 +807,15 @@ Obj * obj;
   R[0] = R_BASE;
 	
   // ARM #1
+  /*
   sim_fwd_kinematics(LEFT, arms[LEFT][1].theta, arms[LEFT][2].theta, &x, &y);
   p_b[0] = x; p_b[1] = y; p_b[2] = 0.0; p_b[3] = 1.0;
   SIMmatXvec(base->wTb, p_b, p_w);
   r[1][X] = p_w[X];
   r[1][Y] = p_w[Y];
-	
+	*/
   // hand velocity relative to base written in base coordinates
+  /*
   sim_arm_Jacobian(arms[LEFT][1].theta, arms[LEFT][2].theta, J);
   v_b[X] = J[0][0]*arms[LEFT][1].theta_dot + J[0][1]*arms[LEFT][2].theta_dot -
     R_BASE*base->theta_dot;
@@ -819,8 +827,10 @@ Obj * obj;
   v[1][X] = base->x_dot + v_w[X];
   v[1][Y] = base->y_dot + v_w[Y];
   R[1] = R_TACTILE;
-	
+	*/
   // ARM #2
+  
+  /*
   sim_fwd_kinematics(RIGHT, arms[RIGHT][1].theta, arms[RIGHT][2].theta, &x,&y);
   p_b[0] = x; p_b[1] = y; p_b[2] = 0.0; p_b[3] = 1.0;
   SIMmatXvec(base->wTb, p_b, p_w);
@@ -839,7 +849,7 @@ Obj * obj;
   v[2][X] = base->x_dot + v_w[X];
   v[2][Y] = base->y_dot + v_w[Y];
   R[2] = R_TACTILE;
-	
+	*/
   // OBJ #3
   r[3][X] = obj->position[X];
   r[3][Y] = obj->position[Y];
@@ -871,8 +881,8 @@ Obj * obj;
 	}
       }
     }
-    for (row=0; row<NBINS; ++row) {
-      for (col=0; col<NBINS; ++col) {
+    for (row=0; row<NYBINS; ++row) {
+      for (col=0; col<NXBINS; ++col) {
 	if (Roger.world_map.occupancy_map[row][col] == OBSTACLE) {
 	  dr[X] = r[i][X] - (MIN_X + (col+0.5)*XDELTA);
 	  dr[Y] = r[i][Y] - (MAX_Y - (row+0.5)*YDELTA);
@@ -890,6 +900,8 @@ Obj * obj;
 	}
       }
     }
+        printf("Hello Test 2 \n");
+
     F[i][X] = sum[X];
     F[i][Y] = sum[Y];
   }
@@ -899,12 +911,12 @@ Obj * obj;
   base->extForce[Y] = F[0][Y];
 	
   // ARM #1
-  arms[LEFT][NARM_FRAMES - 1].extForce[X] = F[1][X];
-  arms[LEFT][NARM_FRAMES - 1].extForce[Y] = F[1][Y];
+ // arms[LEFT][NARM_FRAMES - 1].extForce[X] = F[1][X];
+ // arms[LEFT][NARM_FRAMES - 1].extForce[Y] = F[1][Y];
 	
   // ARM #2
-  arms[RIGHT][NARM_FRAMES - 1].extForce[X] = F[2][X];
-  arms[RIGHT][NARM_FRAMES - 1].extForce[Y] = F[2][Y];
+  //arms[RIGHT][NARM_FRAMES - 1].extForce[X] = F[2][X];
+  //arms[RIGHT][NARM_FRAMES - 1].extForce[Y] = F[2][Y];
 	
   // OBJ
   obj->extForce[X] = F[3][X];
@@ -963,9 +975,11 @@ Obj * obj;
 
 // Roger is now being treated as a global variable and passed in as 
 // a local argument
+
 update_cspace_arms(roger)
 Robot * roger;
 { 
+/*
   int i,j, arm, xbin, ybin, dl, link, collide;
   double t1, t2, x, y, dx[3], dy[3];
   double wTb[4][4], bTw[4][4], b[4], w[4];
@@ -1034,6 +1048,8 @@ Robot * roger;
       }
     }
   }
+
+*/
 }
 
 //update_cspace_base(roger)
@@ -1080,14 +1096,16 @@ draw_all()
 {
   int n;
   char buffer[64];
-  void draw_potential_maps(), draw_object(), draw_roger();
-	
+  void draw_potential_maps(),  draw_roger();
+	//draw_object()
   x_clear();
 	
   draw_potential_maps(); 
-  draw_object(object);
+  //draw_object(object);
 	
-  draw_roger(mobile_base, arms, eyes);	
+  //draw_streamline()
+	
+  draw_roger(mobile_base,arms, eyes);	
   //  draw_ellipse(manipulator(LEFT));
   //  draw_ellipse(manipulator(RIGHT));
   
@@ -1141,12 +1159,14 @@ void draw_frames()
 	
   // the LEFT CSpace frame
   /* q1-axis */
+  /*
   XDrawLine(display, pixmap, gc, T12LD(0.0), T22LD(0.0),
 	    T12LD(FRAME_L*2.0*M_PI), T22LD(0.0));
   XDrawString(display, pixmap, gc, 
 	      T12LD(FRAME_T*2.0*M_PI), T22LD(0.0), "q1", 2);
 	
   /* q2-axis */
+  /*
   XDrawLine(display, pixmap, gc, T12LD(0.0), T22LD(0.0), T12LD(0.0),
 	    T22LD(FRAME_L*2.0*M_PI));
   XDrawString(display, pixmap, gc, 
@@ -1159,14 +1179,18 @@ void draw_frames()
   XDrawString(display, pixmap, gc, T12LD(0.35), T22LD(-3.5), "eye", 3);
 		
   XSetForeground(display, gc, foreground);
+  */
   // the RIGHT CSpace frame
   /* q1-axis */
+  
+  /*
   XDrawLine(display, pixmap, gc, T12RD(0.0), T22RD(0.0),
 	    T12RD(FRAME_L*2.0*M_PI), T22RD(0.0));
   XDrawString(display, pixmap, gc, 
 	      T12RD(FRAME_T*2.0*M_PI), T22RD(0.0), "q1", 2);
-	
+	*/
   /* q2-axis */
+  /*
   XDrawLine(display, pixmap, gc, T12RD(0.0), T22RD(0.0), T12RD(0.0),
 	    T22RD(FRAME_L*2.0*M_PI));
   XDrawString(display, pixmap, gc, 
@@ -1177,7 +1201,7 @@ void draw_frames()
   XDrawString(display, pixmap, gc, T12RD(-0.15), T22RD(-3.5), "arm", 3);
   XSetForeground(display, gc, world_colors[EYE_COLOR].display_color);
   XDrawString(display, pixmap, gc, T12RD(0.4), T22RD(-3.5), "eye", 3);
-	
+	*/
 
 #undef FRAME_L // 0.04
 #undef FRAME_T // 0.045
@@ -1217,21 +1241,23 @@ void draw_potential_maps() {
   double x, y, t1, t2;
   double Cart_bin_potential, left_arm_bin_potential, right_arm_bin_potential;
 	
-  for (i = 0; i < NBINS; ++i) {
+  for (i = 0; i < NYBINS; ++i) {
     y = MAX_Y - i*YDELTA;
-    t2 = T2_MAX - i*TDELTA;
-    for (j = 0; j < NBINS; ++j) {
+   // t2 = T2_MAX - i*TDELTA;
+    for (j = 0; j < NXBINS; ++j) {
       x = MIN_X + j*XDELTA;
-      t1 = T1_MIN + j*TDELTA;
+      //t1 = T1_MIN + j*TDELTA;
       // user map grey level fill
+      
       Cart_bin_potential = Roger.world_map.potential_map[i][j];
-      left_arm_bin_potential = Roger.arm_map[LEFT].potential_map[i][j];
-      right_arm_bin_potential = Roger.arm_map[RIGHT].potential_map[i][j];
+     // left_arm_bin_potential = Roger.arm_map[LEFT].potential_map[i][j];
+     // right_arm_bin_potential = Roger.arm_map[RIGHT].potential_map[i][j];
       
       // 0 <= grey indices <= 100
+      
       Cart_grey_index = (int) (Cart_bin_potential * 100.0);
-      left_arm_grey_index = (int) (left_arm_bin_potential * 100.0);
-      right_arm_grey_index = (int) (right_arm_bin_potential * 100.0);
+     // left_arm_grey_index = (int) (left_arm_bin_potential * 100.0);
+     // right_arm_grey_index = (int) (right_arm_bin_potential * 100.0);
 			
       // Cartesian Map
       // fill is either:
@@ -1260,6 +1286,7 @@ void draw_potential_maps() {
       //      }
 			
       // Left Arm Map
+      /*
       XSetForeground(display, gc, 
 		     world_colors[left_arm_grey_index].display_color);
       if (Roger.arm_map[LEFT].occupancy_map[i][j] == OBSTACLE)
@@ -1278,8 +1305,11 @@ void draw_potential_maps() {
 	XSetForeground(display, gc, world_colors[GOAL_COLOR].display_color);
       XFillRectangle(display, pixmap, gc, T12RD(t1), T22RD(t2),
 		     (T2DR(TDELTA) + 1), (T2DR(TDELTA) + 1));
+		     */
     }
   }
+      printf("Hello Test 3 \n");
+
   draw_boundaries();
   draw_frames();
 }
@@ -1299,6 +1329,7 @@ draw_boundaries()
 	    W2DX(zoom,MIN_X), W2DY(zoom,MAX_Y));
 	
   /* draw LEFT boundaries */
+  /*
   XSetForeground(display, gc, foreground);
   XDrawLine(display, pixmap, gc, T12LD(T1_MIN), T22LD(T2_MAX), T12LD(T1_MAX),
 	    T22LD(T2_MAX));
@@ -1310,6 +1341,7 @@ draw_boundaries()
 	    T22LD(T2_MAX));
 	
   /* draw RIGHT boundaries */
+  /*
   XSetForeground(display, gc, foreground);
   XDrawLine(display, pixmap, gc, T12RD(T1_MIN), T22RD(T2_MAX), T12RD(T1_MAX),
 	    T22RD(T2_MAX));
@@ -1319,6 +1351,7 @@ draw_boundaries()
 	    T22RD(T2_MIN));
   XDrawLine(display, pixmap, gc, T12RD(T1_MIN), T22RD(T2_MIN), T12RD(T1_MIN),
 	    T22RD(T2_MAX));
+	    */
 }
 
 void draw_object(obj)
@@ -1448,6 +1481,7 @@ Eye eyes[NEYES];
   }
   /******************************************************************/
   /* draw arms */
+  /*
   for (j=0; j<NARMS; j++) {
     XSetForeground(display, gc, world_colors[ARM_COLOR].display_color);
     SIMmatXmat(mobile_base.wTb, arms[j][0].iTj, temp0);
@@ -1466,8 +1500,9 @@ Eye eyes[NEYES];
 	SIMcopy_matrix(temp1, temp0);
       }
     }
-		
+		*/
     // draw endpoint forces
+    /*
     mag = sqrt(SQR(arms[j][NARM_FRAMES-1].extForce[X]) +
 	       SQR(arms[j][NARM_FRAMES-1].extForce[Y]));
     if (mag>0.0) {
@@ -1475,16 +1510,17 @@ Eye eyes[NEYES];
 		W2DX(zoom,temp1[0][3]),	W2DY(zoom,temp1[1][3]),
           W2DX(zoom,temp1[0][3] - 0.08*arms[j][NARM_FRAMES-1].extForce[X]/mag),
          W2DY(zoom,temp1[1][3] - 0.08*arms[j][NARM_FRAMES-1].extForce[Y]/mag));
-      
+      */
       // XDrawLine(display, pixmap, gc,
       //   W2DX(zoom,temp1[0][3]), W2DY(zoom,temp1[1][3]),
       //   W2DX(zoom,temp1[0][3] + 0.125*arms[j][NARM_FRAMES-1].extForce[Y]/mag),
       //   W2DY(zoom,temp1[1][3] - 0.125*arms[j][NARM_FRAMES-1].extForce[X]/mag));
-    }
+    //}
 		
     /******************************************************************/
     /* draw displays **************************************************/
     /* draw coordinate in configuration space for left and right arms */
+    /*
     if (j == LEFT)
       XFillRectangle(display, pixmap, gc, T12LD(arms[j][1].theta),
 		     T22LD(arms[j][2].theta), (T2DR(TDELTA) + 1),
@@ -1492,8 +1528,11 @@ Eye eyes[NEYES];
     else if (j == RIGHT)
       XFillRectangle(display, pixmap, gc, T12RD(arms[j][1].theta),
 		     T22RD(arms[j][2].theta), (T2DR(TDELTA) + 1),
+	
 		     (T2DR(TDELTA) + 1));
-  }
+		     */
+  //}
+  
   if (HISTORY) draw_history();
   
   /* visual images *************************************************/
@@ -1506,7 +1545,7 @@ void draw_history()
   int h;
 	
   // draw history of all Cartesian arm postures
-  XSetForeground(display, gc, world_colors[ARM_COLOR].display_color);
+ // XSetForeground(display, gc, world_colors[ARM_COLOR].display_color);
 	
   for (h = 0; h < history_ptr; ++h) {
     // draw Cartesian history of the mobile platform
@@ -1702,8 +1741,8 @@ make_images()
   double p_b[4], p_w[4], bTw[4][4];
   //  int feature_id, 
 	
-  int sort[NBINS*NBINS];
-  VisibleObject vobject[NBINS*NBINS];
+  int sort[NXBINS*NYBINS];
+  VisibleObject vobject[NXBINS*NYBINS];
 	
   /* initialize image white */
   // make sure eye's images keep changing when roger is moving
@@ -1714,14 +1753,16 @@ make_images()
     
     //    first 3 elements in the range array are the hands and the ball
     /* LEFT_ARM - in body frame */
-    sim_fwd_kinematics(LEFT, arms[LEFT][1].theta, arms[LEFT][2].theta, &x, &y);
+   // sim_fwd_kinematics(LEFT, arms[LEFT][1].theta, arms[LEFT][2].theta, &x, &y);
     // convert to eye coordinates
+    /*
     vobject[0].dx = x - eyes[eye].position[X];
     vobject[0].dy = y - eyes[eye].position[Y];
     vobject[0].radius = R_JOINT;
     vobject[0].color = ARM_COLOR;
 		
     /* RIGHT_ARM - in body frame */
+    /*
     sim_fwd_kinematics(RIGHT,arms[RIGHT][1].theta,arms[RIGHT][2].theta,&x,&y);
     vobject[1].dx = x - eyes[eye].position[X];
     vobject[1].dy = y - eyes[eye].position[Y];
@@ -1741,9 +1782,9 @@ make_images()
     // after the first three, the rest are colored obstacles in the occupancy
     // grid
     o_index = 3; // points at the next empty element of the range array
-    for (i=0;i<NBINS;++i) {
+    for (i=0;i<NYBINS;++i) {
       y = MAX_Y - i*YDELTA;
-      for (j=0;j<NBINS; ++j) {
+      for (j=0;j<NXBINS; ++j) {
 	if (Roger.world_map.occupancy_map[i][j] == OBSTACLE) {
 	  p_w[0] = MIN_X + j*XDELTA; p_w[1] = y;
 	  p_w[2] = 0.0; p_w[3] = 1.0;
@@ -1813,21 +1854,25 @@ int arm_id;
 double theta1, theta2;
 double *x, *y; 
 {
+/*
   *x = LARM_1 * cos(theta1) + LARM_2 * cos(theta1 + theta2);
   *y = LARM_1 * sin(theta1) + LARM_2 * sin(theta1 + theta2);
 	
   if (arm_id == LEFT) *y += ARM_OFFSET;
   else *y -= ARM_OFFSET;
+  */
 }
 
 sim_arm_Jacobian(theta1,theta2, Jacobian)
 double theta1,theta2;
 double Jacobian[2][2];
 {
+/*
   Jacobian[0][0] = -LARM_1*sin(theta1) - LARM_2*sin(theta1 + theta2);
   Jacobian[0][1] = -LARM_2*sin(theta1 + theta2);
   Jacobian[1][0] =  LARM_1*cos(theta1) + LARM_2*cos(theta1 + theta2);
   Jacobian[1][1] =  LARM_2*cos(theta1 + theta2);
+  */
 }
 
 void goal_detection()
@@ -1843,7 +1888,7 @@ void goal_detection()
     XSetForeground(display, gc, foreground);
     XDrawString(display, pixmap, gc,
 		W2DX(zoom,3.0), W2DY(zoom,1.8), temp, 5);
-    XDrawString(display, pixmap, gc, T12RD(-0.45), T22RD(-3.6), "time=", 5);
+    //XDrawString(display, pixmap, gc, T12RD(-0.45), T22RD(-3.6), "time=", 5);
     
     XkwSetWidgetLabel(start_w, "Start");
     XtRemoveTimeOut(timer);
@@ -1898,8 +1943,8 @@ Robot * roger;
 	if (roger->button_event == LEFT_BUTTON) {		
 	  printf("q1=%6.4lf q2=%6.4lf\n", q1, q2);
 	  
-	  roger->arm_setpoint[body_side][0] = q1;
-	  roger->arm_setpoint[body_side][1] = q2;
+	 // roger->arm_setpoint[body_side][0] = q1;
+	 // roger->arm_setpoint[body_side][1] = q2;
 	} 
 	//right mouse button -> eyes
 	else if (roger->button_event == RIGHT_BUTTON) {
@@ -1949,8 +1994,8 @@ Robot * roger;
 	  printf("Map editor input - x: %4.3f, y: %4.3f - button: %d\n", x, y, roger->button_event);
 
 	  xbin = (x - MIN_X) / XDELTA;
-	  ybin = NBINS - (y - MIN_Y) / YDELTA;
-	  if ((xbin<0) || (xbin>(NBINS-1)) || (ybin<0) || (ybin>(NBINS-1))) {
+	  ybin = NYBINS - (y - MIN_Y) / YDELTA;
+	  if ((xbin<0) || (xbin>(NXBINS-1)) || (ybin<0) || (ybin>(NYBINS-1))) {
 		printf("Out of the boundary!!!\n");
 	  }
 	  else {
@@ -2022,6 +2067,7 @@ Robot * roger;
 }
 
 //check if input is in configuration space area and return angles
+
 int isConfigurationInput(x, y, q1, q2, side) 
 double x, y;
 double *q1, *q2;
@@ -2051,6 +2097,7 @@ int *side;
 
   //calculate joint angles from click locations
   //left arm
+  /*
   if (x < D2WX(100.0, T12LD(T1_MAX))) {
     *side = LEFT;
     range = D2WX(100.0, T12LD(T1_MAX)) - D2WX(100.0, T12LD(T1_MIN));
@@ -2058,7 +2105,9 @@ int *side;
     range = D2WY(100.0, T22LD(T2_MAX)) - D2WY(100.0, T22LD(T2_MIN));
     *q2 = (y - (D2WY(100.0, T22LD(T2_MIN)) + range/2.0)) / (range/2.0) * M_PI;
   }
+  */
   //right arm
+  /*
   else { 
     *side = RIGHT;
     range = D2WX(100.0, T12RD(T1_MAX)) - D2WX(100.0, T12RD(T1_MIN));
@@ -2066,9 +2115,10 @@ int *side;
     range = D2WY(100.0, T22RD(T2_MAX)) - D2WY(100.0, T22RD(T2_MIN));
     *q2 = (y - (D2WY(100.0, T22RD(T2_MIN)) + range/2.0)) / (range/2.0) * M_PI;
   }
+  */
   return TRUE;
 }
-
+//make everything in here to make button interface work
 //check if input is in cartesian space area
 int isCartesianInput(x_input, y_input, x, y) 
 double x_input, y_input;
@@ -2091,6 +2141,7 @@ double x;
 double y;
 int button;
 {
+/*
   int limb = 0;
 
   printf("Arm goal input - x: %4.3f, y: %4.3f - button: %d\n", x, y, button);
@@ -2106,6 +2157,7 @@ int button;
   }
   else return;
   CartesianArmControl(roger, limb, x,y); //PROJECT #2 - Kinematics.c
+*/
 }
 
 Teleoperation_Cartesian_input_base(roger, x, y, button)
@@ -2139,11 +2191,12 @@ Robot * roger;
   roger->base_setpoint[Y] = roger->base_position[Y];// + BASE_CONTROL_OFFSET*sin(roger->base_position[THETA]);
   roger->base_setpoint[THETA] = roger->base_position[THETA];
 
+/*
   roger->arm_setpoint[LEFT][0] = roger->arm_theta[LEFT][0];
   roger->arm_setpoint[LEFT][1] = roger->arm_theta[LEFT][1];
   roger->arm_setpoint[RIGHT][0] = roger->arm_theta[RIGHT][0];
   roger->arm_setpoint[RIGHT][1] = roger->arm_theta[RIGHT][1];
-
+*/
   roger->eyes_setpoint[LEFT] = roger->eye_theta[LEFT];
   roger->eyes_setpoint[RIGHT] = roger->eye_theta[RIGHT];
 

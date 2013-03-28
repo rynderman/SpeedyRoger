@@ -15,7 +15,7 @@
 
 
 int project5_initialized = FALSE;
-double CONTROL_STEP = 3.5;
+double CONTROL_STEP = 2.0;
 int currentPos = 0;
 
 project5_control(roger)
@@ -42,7 +42,7 @@ Robot* roger;
     
     state = primitive4(roger);
     
-    CONTROL_STEP = 3.5;
+    CONTROL_STEP = 2.0;
     compute_headings(roger,currentPos);
 }
 
@@ -107,8 +107,8 @@ Robot* roger;
 	printf("Dilating obstacles...\n");
     
 	//remove previous dilated obstacles
-	for (i = 0; i < NBINS; ++i) {   // rows
-		for (j = 0; j < NBINS; ++j) {   // cols
+	for (i = 0; i < NYBINS; ++i) {   // rows
+		for (j = 0; j < NXBINS; ++j) {   // cols
 			if (roger->world_map.occupancy_map[i][j] == DILATED_OBSTACLE) {
 				roger->world_map.occupancy_map[i][j] = FREESPACE;
 				roger->world_map.potential_map[i][j] = 1.0;
@@ -125,15 +125,15 @@ Robot* roger;
     
 	
     //create dilated obstacles
-    for (i = 0; i < NBINS; ++i) {   // rows y
-		for (j = 0; j < NBINS; ++j) {   // col x
+    for (i = 0; i < NYBINS; ++i) {   // rows y
+		for (j = 0; j < NXBINS; ++j) {   // col x
 			if (roger->world_map.occupancy_map[i][j] == OBSTACLE) {
                 num_obs++;
                 // go through all freespaces within radius distance and mark it as dilated
                 // in this case, go through every square and if in distance, mark as dialated
                 // To do: make this efficient
-                for (ybin = 0; ybin < NBINS; ++ybin) {   // rows y
-                    for (xbin = 0; xbin < NBINS; ++xbin) {   // cols x
+                for (ybin = 0; ybin < NYBINS; ++ybin) {   // rows y
+                    for (xbin = 0; xbin < NXBINS; ++xbin) {   // cols x
                         if (roger->world_map.occupancy_map[ybin][xbin] == FREESPACE) {
                             if (cell_distance(j, i, xbin, ybin) <= ROBOT_DILATE_RADIUS) {
                                 roger->world_map.occupancy_map[ybin][xbin] = DILATED_OBSTACLE;
@@ -156,7 +156,7 @@ Robot* roger;
  This will be replaced with a goal
  */
 #define NUM_SEARCH_LOCATIONS 1
-double search_locations[NUM_SEARCH_LOCATIONS][2] = { {0.0, -1.0}};
+double search_locations[NUM_SEARCH_LOCATIONS][2] = { {1.45, -1.0}};
 /*
  / Initializes a set a search locations in the occupancy grid / potentential map
  / Can be called whenever you want to set/renew the search goals
@@ -220,9 +220,9 @@ Robot * roger;
     // 0.0 <= roger->world_map.potential_map[ybin][xbin] <= 1.0
     
     
-    for (i = 0; i < NBINS; ++i) {   // rows y
+    for (i = 0; i < NYBINS; ++i) {   // rows y
         
-		for (j = 0; j < NBINS; ++j) {   // col x
+		for (j = 0; j < NXBINS; ++j) {   // col x
             
             if (roger->world_map.occupancy_map[i][j] == FREESPACE) {
                 
@@ -316,11 +316,11 @@ double grad[2]; // grad = [ d(phi)/dx  d(phi)/dy ] ~ [ d(phi)/dj  -d(phi)/di ]
     
 	j0 = (int) ((x-MIN_X)/XDELTA);
 	j1 = (j0+1);
-	i1 = NBINS - (int) ((y - MIN_Y)/YDELTA);
+	i1 = NYBINS - (int) ((y - MIN_Y)/YDELTA);
 	i0 = (i1-1);
     
 	del_x = (x-MIN_X)/XDELTA - j0;
-	del_y = (NBINS - (y - MIN_Y)/YDELTA) - i0;
+	del_y = (NYBINS - (y - MIN_Y)/YDELTA) - i0;
     
 	dphi_dj = ((1.0-del_y)*(roger->world_map.potential_map[i0][j1] -
                             roger->world_map.potential_map[i0][j0] ) +
@@ -353,8 +353,8 @@ Robot* roger;
 	int i, j;
     
 	//clear walls, dilated obstacles, goals
-	for (i = 1; i < NBINS-1; ++i) {   // rows
-		for (j = 1; j < NBINS-1; ++j) {   // cols
+	for (i = 1; i < NYBINS-1; ++i) {   // rows
+		for (j = 1; j < NXBINS-1; ++j) {   // cols
 			roger->world_map.occupancy_map[i][j] = FREESPACE;
 			roger->world_map.potential_map[i][j] = 1.0;
             
@@ -390,8 +390,8 @@ Robot *roger;
 	double x,y, dist;
     
 	//remove dilated obstacles
-	for (i = 0; i < NBINS; ++i) {   // rows
-		for (j = 0; j < NBINS; ++j) {   // cols
+	for (i = 0; i < NYBINS; ++i) {   // rows
+		for (j = 0; j < NXBINS; ++j) {   // cols
 			if (roger->world_map.occupancy_map[i][j] == DILATED_OBSTACLE) {
 				roger->world_map.occupancy_map[i][j] = FREESPACE;
 				roger->world_map.potential_map[i][j] = 1.0;
@@ -430,8 +430,8 @@ Robot *roger;
 	}
     
 	//make sure potential map is initialized everywhere
-	for (i = 0; i < NBINS; ++i) {   // rows
-		for (j = 0; j < NBINS; ++j) {   // cols
+	for (i = 0; i < NYBINS; ++i) {   // rows
+		for (j = 0; j < NXBINS; ++j) {   // cols
 			switch (roger->world_map.occupancy_map[i][j]) {
 				case FREESPACE:
 					roger->world_map.potential_map[i][j] = 1.0;
@@ -450,14 +450,14 @@ Robot *roger;
 }
 
 #define STEP         0.03
-#define MAX_V        25.0
+#define MAX_V        16.0
 
 // This should now be called compute_control_step
 compute_headings(roger , curr)
 Robot* roger;
 int curr;
 {
-    int i, j, xbin, ybin, already_used[NBINS][NBINS];
+    int i, j, xbin, ybin, already_used[NXBINS][NYBINS];
 	double compute_gradient(), mag, grad[2], x, y;
 	double headings[50];
 	
@@ -470,8 +470,8 @@ int curr;
 	
 	// initialize auxilliary structure for controlling the
 	// density of streamlines rendered
-	for (j=0; j<NBINS; ++j) {
-		for (i=0; i<NBINS; ++i) {
+	for (j=0; j<NXBINS; ++j) {
+		for (i=0; i<NYBINS; ++i) {
 			already_used[i][j] = FALSE;
 		}
 	}
@@ -501,17 +501,19 @@ int curr;
             
             headings[loops] = change;
             
-			// printf("loop: %d position: (%f, %f) looking at (%f, %f) change: %f\n", loops, x1, y1, x, y, ((change*(180/3.14159))) );
-            /*
+			 //printf("loop: %d position: (%f, %f) looking at (%f, %f) change: %f\n", loops, x1, y1, x, y, ((change*(180/3.14159))) );
+            
              if (fabs(change) > 0.001) {
-             printf("change at %f %f: %f\n", x, y, (change*(180/3.14159)));
+           //  printf("change at %f %f: %f\n", x, y, (change*(180/3.14159)));
              }
-             */
+             
             x -= STEP*grad[0];
             y -= STEP*grad[1];
             
             ybin = (int)((MAX_Y-y)/YDELTA);
             xbin = (int)((x-MIN_X)/XDELTA);
+ 
+ 			
  
         }
     }
@@ -526,9 +528,8 @@ int curr;
     	current = ((current-(3.1415/4.0))/(3.1415/4.0));
     	current = fabs(current);
 		//current = current*MAX_V;
-		if(current > 1.0){
-		//	current = 1.0;
-		}
+	
+	
 		
 		if(current > high){
 			high = current;
@@ -538,18 +539,20 @@ int curr;
 		}
 		average = average + current;
  		vel_g_cu[k] = current; 
-		//printf("%f  \n" , current );
+ 		
+ 		
+		//printf("%f  %f %f \n" , current , average,size );
 		
     } 
 	
-	average = average / (size);
-	//printf("%f  \n" , vel_g_cu[0]  );
-    high = average + ((high-average)/3.0);
-	low = average - ((average-low)/6.0);
-	
+	average = average / size;
+    high = average + ((high-average)/10.0);
+	low = average - ((average-low)/10.0);
+	//	printf("%f %f %f  \n" , average,high,low  );
+
 	int count = 0;
 	
-	for(count =0;count < 1000; count++){
+	//for(count =0;count < 1000; count++){
     for (k = 0; k < size-1; k++){
         if (vel_g_cu[k]+a < vel_g_cu[k+1])
             vel_g_cu[k+1] = vel_g_cu[k]+a;
@@ -559,18 +562,19 @@ int curr;
            vel_g_cu[k-1] = vel_g_cu[k]+a;
 		     // printf("%f \n" , vel_g_cu[k+1]);
     }
+	//}
+	printf("%s %f %f \n" ,"current", vel_g_cu[0] , vel_g_cu[5]);
+	if(vel_g_cu[0] > high){
+		CONTROL_STEP = 1.5;
 	}
-	//printf("%f \n" , vel_g_cu[curr]);
-	if(vel_g_cu[curr] > high){
-		//CONTROL_STEP = 1.5;
+	if((vel_g_cu[0] < high) && ( vel_g_cu[0] > low) ){
+		CONTROL_STEP = 1.0;
 	}
-	if((vel_g_cu[curr] < high) && ( vel_g_cu[curr] > low) ){
-		//CONTROL_STEP = 0.9;
+	if(vel_g_cu[0] < low){
+		CONTROL_STEP = .5;
 	}
-	if(vel_g_cu[curr] < low){
-		//CONTROL_STEP = 0.5;
-	}
-    //CONTROL_STEP = CONTROL_STEP*(1-vel_g_cu[curr]);
+   // CONTROL_STEP = CONTROL_STEP*(vel_g_cu[0]);
+    
     
 }
 
@@ -631,9 +635,9 @@ project5_visualize(roger)
 Robot* roger;
 {
     
-	int i, j, xbin, ybin, already_used[NBINS][NBINS];
+	int i, j, xbin, ybin, already_used[NXBINS][NYBINS];
 	double compute_gradient(), mag, grad[2], x, y;
-	//void draw_roger(), draw_object(), draw_frames(), mark_used(), draw_history();
+	void draw_roger(), draw_object(), draw_frames(), mark_used(), draw_history();
 	
 	//printf("Project 5 visualize called. \n");
     
@@ -642,8 +646,8 @@ Robot* roger;
 	
 	// initialize auxilliary structure for controlling the
 	// density of streamlines rendered
-	for (j=0; j<NBINS; ++j) {
-		for (i=0; i<NBINS; ++i) {
+	for (j=0; j<NYBINS; ++j) {
+		for (i=0; i<NXBINS; ++i) {
 			already_used[i][j] = FALSE;
 		}
 	}

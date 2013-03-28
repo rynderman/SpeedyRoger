@@ -11,13 +11,14 @@
 #define HEIGHT	           480
 
 //cartesian space
-#define MIN_X             -2.0
+#define MIN_X             -4.0
 #define MIN_Y             -2.0
-#define MAX_X              2.0
+#define MAX_X              4.0
 #define MAX_Y              2.0
-#define NBINS              64
-#define XDELTA   	   ((MAX_X-MIN_X)/NBINS)
-#define YDELTA   	   ((MAX_Y-MIN_Y)/NBINS)
+#define NYBINS              64
+#define NXBINS				128
+#define XDELTA   	   ((MAX_X-MIN_X)/NXBINS)
+#define YDELTA   	   ((MAX_Y-MIN_Y)/NYBINS)
 #define R_OBSTACLE         (XDELTA/2.0)
 
 
@@ -27,7 +28,7 @@
 #define T2_MIN      -(M_PI)
 #define T1_MAX       (M_PI)
 #define T2_MAX       (M_PI)
-#define TDELTA   ((2.0*M_PI)/NBINS)
+#define TDELTA   ((2.0*M_PI)/NYBINS)
 
 // button geometry
 #define BOXH	           18
@@ -53,6 +54,7 @@
 #define D2WY(scale,num)	   ((double)((CENTER_Y-num)*1000)/(scale*1000.0))
 
 // world to display theta
+
 #define T2DR(num)   (((int)(MAP_SCALE*1000.0*(num))/1000))
 #define T12LD(num)  (LEFT_MAP_CENTER_X+((int)(MAP_SCALE*1000.0*((num)))/1000))
 #define T22LD(num)  (LEFT_MAP_CENTER_Y-((int)(MAP_SCALE*1000.0*((num)))/1000))
@@ -95,7 +97,7 @@
 
 #define GAZE_COLOR   65
 #define OBJECT_COLOR RED
-#define ARM_COLOR    BLUE
+//#define ARM_COLOR    BLUE
 #define EYE_COLOR	   DARKGREEN
 #define GOAL_COLOR   GREEN 
 
@@ -123,7 +125,7 @@ typedef struct _base {
   double contact_theta;
   double extForce[2];          // net (fx,fy) force on the base
 } Base;
-
+//Delete
 typedef struct _arm {
   double iTj[4][4];
   int dof_type;                // revolute or prismatic type
