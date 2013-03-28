@@ -470,12 +470,6 @@ int curr;
 	
 	// initialize auxilliary structure for controlling the
 	// density of streamlines rendered
-	for (j=0; j<NXBINS; ++j) {
-		for (i=0; i<NYBINS; ++i) {
-			already_used[i][j] = FALSE;
-		}
-	}
-    
     float x1 = roger->base_position[X];
     float y1 = roger->base_position[Y];
     

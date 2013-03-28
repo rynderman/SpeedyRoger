@@ -118,16 +118,16 @@ int argc;char **argv;
   //simulate_arm(mobile_base.wTb, arms);
   simulate_eyes(mobile_base.wTb, eyes);
   simulate_object(&object);
-	printf("Test 6 \n");
+	
 	
   make_images();
-    	printf("Test 7 \n");
+   
 
   draw_all();
-	    	printf("Test 8 \n");
+	    
 
   XtAppMainLoop(app_con);
-        	    	printf("Test 9 \n");
+        	    
 
 }
 
@@ -310,7 +310,7 @@ int rst;
 	}
       }
     }
-    printf("Hello Test Finished Initializing World Geometry\n");
+    
 		
     //     // ***** the three room geometry *****
     //     // add room partitions to Cartesian map - horizonal wall
@@ -655,7 +655,7 @@ int aux[NYBINS][NXBINS];
 	aux[ii+j][jj+k] = TRUE;
     }
   }
-    printf("Test 5 \n");
+
 
 }
 
@@ -908,7 +908,6 @@ Obj * obj;
 	}
       }
     }
-        printf("Hello Test 2 \n");
 
     F[i][X] = sum[X];
     F[i][Y] = sum[Y];
@@ -1108,17 +1107,17 @@ draw_all()
 	//draw_object()
 	
   x_clear();
-		printf("Test 10 \n");
+		
 
   draw_potential_maps(); 
-  		printf("Test 11 \n");
+  	
 
   //draw_object(object);
 	
   //draw_streamline()
 	
   draw_roger(mobile_base,arms, eyes);
-  		printf("Test 12 \n");
+  		
 	
   //  draw_ellipse(manipulator(LEFT));
   //  draw_ellipse(manipulator(RIGHT));
@@ -1324,8 +1323,7 @@ void draw_potential_maps() {
 		     */
     }
   }
-      printf("Hello Test 3 \n");
-	  fflush(stdout);
+	 
 	  
   draw_boundaries();
   draw_frames();
@@ -1817,7 +1815,6 @@ make_images()
     for (i=0; i<o_index; ++i)
       pinhole_camera(vobject[sort[i]], eye);
   }
-  printf("Test 4 \n");
 }
 
 insertion_sort(vob, sort, num)
