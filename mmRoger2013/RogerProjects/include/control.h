@@ -46,7 +46,7 @@ enum {
 };
 
 /***** SOR RELAXATION PARAMETERS ******************************************/
-#define THRESHOLD              0.00000000000001
+#define THRESHOLD              0.0000000000000000001
 #define FREESPACE              1
 #define OBSTACLE	           2
 #define GOAL                   3
@@ -63,13 +63,13 @@ enum {
 /*************************************************************************/
 /* data structures that comprise the Robot interface to user control     */
 /* applications (user file control.c)                                    */
-#define NBINS 64  /* USER DEFINED - the number of nodes in each          */
+//#define NBINS 64  /* USER DEFINED - the number of nodes in each          */
                   /* dimension of all occupancy grids                    */
 
 typedef struct _map {               /* DO NOT ALTER */
-  int occupancy_map[NBINS][NBINS];
-  double potential_map[NBINS][NBINS];
-  int color_map[NBINS][NBINS];
+  int occupancy_map[NYBINS][NXBINS];
+  double potential_map[NYBINS][NXBINS];
+  int color_map[NYBINS][NXBINS];
 } Map;
 
 typedef struct _setpoint {    /* DO NOT ALTER */

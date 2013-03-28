@@ -190,7 +190,7 @@ Robot * roger;
 	int i, j, sor_count=0, converged = FALSE;
 	double sor_once();
     
-	while (!converged && (sor_count < 5000)) {
+	while (!converged && (sor_count < 10000)) {
 		++sor_count;
 		if (sor_once(roger) < THRESHOLD)
 			converged = TRUE;
@@ -635,60 +635,83 @@ project5_visualize(roger)
 Robot* roger;
 {
     
-	int i, j, xbin, ybin, already_used[NXBINS][NYBINS];
+	int i, j, xbin, ybin, already_used[NYBINS][NXBINS];
 	double compute_gradient(), mag, grad[2], x, y;
-	void draw_roger(), draw_object(), draw_frames(), mark_used(), draw_history();
+	//void draw_roger(), draw_object(), draw_frames(), mark_used(), draw_history();
 	
-	//printf("Project 5 visualize called. \n");
-    
+	printf("Project 5 visualize called. \n");
+
 	// make sure it converged
 	sor(roger);
 	
 	// initialize auxilliary structure for controlling the
 	// density of streamlines rendered
-	for (j=0; j<NYBINS; ++j) {
-		for (i=0; i<NXBINS; ++i) {
+	for (i=0; i<NYBINS; ++i) {
+		for (j=0; j<NXBINS; ++j) {
 			already_used[i][j] = FALSE;
 		}
 	}
-    
-    int x1 = roger->base_position[X];
-    int y1 = roger->base_position[Y];
-    
-    j = (int)((MAX_Y - y1)/YDELTA);
-    i = (int)((x1 - MIN_X)/XDELTA);
-    
-    ybin = i; xbin = j;
-    
-    // follow a stream line
-    x = MIN_X + (j+0.5)*XDELTA;
-    y = MAX_Y - (i+0.5)*YDELTA;
-    
-   // printf("Almost loop\n");
-    
-    if (!already_used[ybin][xbin]) {
-        int loops = 0;
-        while ((roger->world_map.occupancy_map[ybin][xbin] != GOAL) &&
-               (loops++ < 1000)) {
-            mag = compute_gradient(x, y, roger, grad);
-            if (mag < THRESHOLD) {
-                //TODO: Prevent uninitialized harmonic map to try to print stream
-                //printf("gradient magnitude is too small %6.4lf\n", mag);
-            }
-            else {
-                // printf("gradientmag: %f gx:%f gy:%f stream:%d x:%d y:%d\n",
-                //	   mag, grad[0], grad[1], streamIdx, bin_ti, bin_tj);
-                
-                x_draw_line(GOAL_COLOR, x, y, x-STEP*grad[0], y-STEP*grad[1]);
-                
-                x -= STEP*grad[0];
-                y -= STEP*grad[1];
-                
-                ybin = (int)((MAX_Y-y)/YDELTA);
-                xbin = (int)((x-MIN_X)/XDELTA);
-            }
-        }
-        mark_used((i+1), (j+1), already_used);
-    }
+	
+		
+	// If [row,col] is FREESPACE and at least one of its neighbors
+	// is OBSTACLE, then draw a streamline
+	for (i=1;i<(NYBINS-1);i+=1) {
+		for (j=1;j<(NXBINS-1);j+=1) {
+			if ((roger->world_map.occupancy_map[i][j] == FREESPACE) &&
+				((roger->world_map.occupancy_map[i-1][j-1] == OBSTACLE) ||
+				 (roger->world_map.occupancy_map[i-1][j] == OBSTACLE)   ||
+				 (roger->world_map.occupancy_map[i-1][j+1] == OBSTACLE) ||
+				 (roger->world_map.occupancy_map[i][j-1] == OBSTACLE)   ||
+				 (roger->world_map.occupancy_map[i][j+1] == OBSTACLE)   ||
+				 (roger->world_map.occupancy_map[i+1][j-1] == OBSTACLE) ||
+				 (roger->world_map.occupancy_map[i+1][j] == OBSTACLE)   ||
+				 (roger->world_map.occupancy_map[i+1][j+1] == OBSTACLE) || 
+				 
+				 (roger->world_map.occupancy_map[i-1][j-1] == DILATED_OBSTACLE) ||
+				 (roger->world_map.occupancy_map[i-1][j] == DILATED_OBSTACLE)   ||
+				 (roger->world_map.occupancy_map[i-1][j+1] == DILATED_OBSTACLE) ||
+				 (roger->world_map.occupancy_map[i][j-1] == DILATED_OBSTACLE)   ||
+				 (roger->world_map.occupancy_map[i][j+1] == DILATED_OBSTACLE)   ||
+				 (roger->world_map.occupancy_map[i+1][j-1] == DILATED_OBSTACLE) ||
+				 (roger->world_map.occupancy_map[i+1][j] == DILATED_OBSTACLE)   ||
+				 (roger->world_map.occupancy_map[i+1][j+1] == DILATED_OBSTACLE) ) ) 
+			{
+				
+				// follow a stream line
+				x = MIN_X + (j+0.5)*XDELTA;
+				y = MAX_Y - (i+0.5)*YDELTA;
+				ybin = i; xbin = j;
+				
+				if (!already_used[ybin][xbin]) {
+					int loops = 0;
+					while ((roger->world_map.occupancy_map[ybin][xbin] != GOAL) &&
+						   (loops++ < 1000)) {
+						mag = compute_gradient(x, y, roger, grad);
+						if (mag < THRESHOLD) {
+							//TODO: Prevent uninitialized harmonic map to try to print stream
+							//printf("gradient magnitude is too small %6.4lf\n", mag);
+						}
+						else {
+							// printf("gradientmag: %f gx:%f gy:%f stream:%d x:%d y:%d\n", 
+							//	   mag, grad[0], grad[1], streamIdx, bin_ti, bin_tj);
+							
+							
+							//printf("Draw test before \n" );
+							x_draw_line(GOAL_COLOR, x, y, x-STEP*grad[0], y-STEP*grad[1]);
+							//printf("Draw test after \n" );
+
+							x -= STEP*grad[0];
+							y -= STEP*grad[1];
+							
+							ybin = (int)((MAX_Y-y)/YDELTA);
+							xbin = (int)((x-MIN_X)/XDELTA);
+						}
+					}
+					mark_used((i+1), (j+1), already_used);
+				}
+			}
+		}
+	}
 }
+
 

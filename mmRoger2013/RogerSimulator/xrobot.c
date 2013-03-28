@@ -118,11 +118,17 @@ int argc;char **argv;
   //simulate_arm(mobile_base.wTb, arms);
   simulate_eyes(mobile_base.wTb, eyes);
   simulate_object(&object);
+	printf("Test 6 \n");
 	
   make_images();
+    	printf("Test 7 \n");
+
   draw_all();
-	
+	    	printf("Test 8 \n");
+
   XtAppMainLoop(app_con);
+        	    	printf("Test 9 \n");
+
 }
 
 x_init_colors() 
@@ -635,7 +641,7 @@ void x_visualize_proc(w,client_data,call_data)
 
 void mark_used(ii,jj,aux)
 int ii, jj;
-int aux[NXBINS][NYBINS];
+int aux[NYBINS][NXBINS];
 {
   int j,k;
   double dist;
@@ -649,6 +655,8 @@ int aux[NXBINS][NYBINS];
 	aux[ii+j][jj+k] = TRUE;
     }
   }
+    printf("Test 5 \n");
+
 }
 
 void x_timer_proc(w, client_data, call_data)
@@ -1098,14 +1106,20 @@ draw_all()
   char buffer[64];
   void draw_potential_maps(),  draw_roger();
 	//draw_object()
-  x_clear();
 	
+  x_clear();
+		printf("Test 10 \n");
+
   draw_potential_maps(); 
+  		printf("Test 11 \n");
+
   //draw_object(object);
 	
   //draw_streamline()
 	
-  draw_roger(mobile_base,arms, eyes);	
+  draw_roger(mobile_base,arms, eyes);
+  		printf("Test 12 \n");
+	
   //  draw_ellipse(manipulator(LEFT));
   //  draw_ellipse(manipulator(RIGHT));
   
@@ -1240,7 +1254,7 @@ void draw_potential_maps() {
   int i, j, Cart_grey_index, left_arm_grey_index, right_arm_grey_index;
   double x, y, t1, t2;
   double Cart_bin_potential, left_arm_bin_potential, right_arm_bin_potential;
-	
+  int sum;	
   for (i = 0; i < NYBINS; ++i) {
     y = MAX_Y - i*YDELTA;
    // t2 = T2_MAX - i*TDELTA;
@@ -1249,6 +1263,8 @@ void draw_potential_maps() {
       //t1 = T1_MIN + j*TDELTA;
       // user map grey level fill
       
+     // printf("%d " , i+j);
+
       Cart_bin_potential = Roger.world_map.potential_map[i][j];
      // left_arm_bin_potential = Roger.arm_map[LEFT].potential_map[i][j];
      // right_arm_bin_potential = Roger.arm_map[RIGHT].potential_map[i][j];
@@ -1309,7 +1325,8 @@ void draw_potential_maps() {
     }
   }
       printf("Hello Test 3 \n");
-
+	  fflush(stdout);
+	  
   draw_boundaries();
   draw_frames();
 }
@@ -1800,6 +1817,7 @@ make_images()
     for (i=0; i<o_index; ++i)
       pinhole_camera(vobject[sort[i]], eye);
   }
+  printf("Test 4 \n");
 }
 
 insertion_sort(vob, sort, num)
