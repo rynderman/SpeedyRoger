@@ -850,7 +850,7 @@ Obj * obj;
 
 draw_all()
 {
-	visual(Roger);
+	//visual(Roger);
 
     int n;
     char buffer[64];
@@ -861,7 +861,7 @@ draw_all()
     n = sprintf(buffer, "total elapsed time = %6.3lf", simtime);
     XSetForeground(display, gc, foreground);
     XDrawString(display, pixmap, gc,
-                W2DX(zoom,3.0), W2DY(zoom,1.8), buffer, n);
+                W2DX(zoom,4.0), W2DY(zoom,2.0), buffer, n);
     x_expose();
 }
 
