@@ -15,21 +15,14 @@
 /**************************************************************************/
 // Modes
 enum input_modes {
-	JOINT_ANGLE_INPUT = 0,
-	BASE_GOAL_INPUT,
-	ARM_GOAL_INPUT,
-	BALL_INPUT,
+	BASE_GOAL_INPUT = 0,
 	MAP_INPUT,
-	//	PROJECT_INPUT,
 	N_INPUT_MODES  //number of modes
 };
 
 enum control_modes {
 	TELEOPERATION = 0,
-	PROJECT3,
-	PROJECT4,
 	PROJECT5,
-	PROJECT6,
 	N_CONTROL_MODES //number of modes
 };
 
