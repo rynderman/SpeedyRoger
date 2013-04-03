@@ -33,18 +33,12 @@ Robot* roger;
     if(currentPos >= 100){
     	currentPos = 0; 
     }
-    
-    //project5_visualize(roger);
-    
-	//relax harmonic function
 	sor(roger);
-    //project5_visualize(roger);
     
     state = primitive4(roger);
     
     CONTROL_STEP = 2.0;
     compute_headings(roger,currentPos);
-    printf("done \n");
 }
 
 
@@ -56,12 +50,8 @@ double cell_distance(xbin1, ybin1, xbin2, ybin2)
 int xbin1, ybin1, xbin2, ybin2;
 {
 	double dist[2] = {0.0, 0.0};
-	
-    //-------------------------------
-    //PROJECT 5: Complete the distance calculation in the x and y direction between both cells
     
 	//calculate distance in x direction
-    
     dist[X] = xbin2 - xbin1;
     
     if (fabs(dist[X]) <= 1) {
@@ -71,9 +61,7 @@ int xbin1, ybin1, xbin2, ybin2;
         dist[X] -= 1*SGN(dist[X]);
         dist[X] = dist[X]*XDELTA;
     }
-    
 	//calculate distance in y direction
-	
     dist[Y] = ybin2 - ybin1;
     
     if (fabs(dist[Y]) <= 1) {
@@ -83,12 +71,7 @@ int xbin1, ybin1, xbin2, ybin2;
         dist[Y] -= 1*SGN(dist[Y]);
         dist[Y] = dist[Y]*YDELTA;
     }
-    
-    //printf("y:%lf x:%lf\n", dist[X], dist[Y]);
-    //PROJECT 5 end
-    //-------------------------------
-    
-	return sqrt( SQR(dist[X]) + SQR(dist[Y]) );
+    return sqrt( SQR(dist[X]) + SQR(dist[Y]) );
 }
 
 
@@ -523,8 +506,6 @@ int curr;
     	current = fabs(current);
 		//current = current*MAX_V;
 	
-	
-		
 		if(current > high){
 			high = current;
 		}

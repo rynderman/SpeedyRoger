@@ -848,16 +848,6 @@ Obj * obj;
 
 #define NSAMPLES 10
 
-// Roger is now being treated as a global variable and passed in as
-// a local argument
-/*
-update_cspace_arms(roger)
-Robot * roger;
-{
-}
- */
-
-
 draw_all()
 {
 	visual(Roger);
