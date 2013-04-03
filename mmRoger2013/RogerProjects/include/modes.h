@@ -1,9 +1,9 @@
- /**************************************************************************/
+/**************************************************************************/
 /* File:        modes.h                                                    */
 /* Description: everything for input and control modes of the simulator    */
 /* Author:      Rod Grupen                                                 */
 /* Date:        11-1-2009
-/**************************************************************************/
+ /**************************************************************************/
 #ifndef MODES_H
 #define MODES_H
 
@@ -21,8 +21,8 @@ enum input_modes {
 };
 
 enum control_modes {
-	TELEOPERATION = 0,
-	PROJECT5,
+    PROJECT5 = 0,
+	TELEOPERATION,
 	N_CONTROL_MODES //number of modes
 };
 

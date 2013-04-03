@@ -21,8 +21,8 @@ enum input_modes {
 };
 
 enum control_modes {
-	TELEOPERATION = 0,
-	PROJECT5,
+    PROJECT5 = 0,
+	TELEOPERATION,
 	N_CONTROL_MODES //number of modes
 };
 

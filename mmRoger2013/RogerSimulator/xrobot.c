@@ -82,7 +82,7 @@ int argc;char **argv;
                                            "Input: Base Goal", BOXW, BOXH);
     control_mode_w = widget = XkwMakeCommand(form, NULL, widget,
                                              x_control_mode_proc,
-                                             "Teleoperation", BOXW, BOXH);
+                                             "Velocity Control", BOXW, BOXH);
     params_w = widget = XkwMakeCommand(form, NULL, widget, x_params_proc,
                                        "Enter Params", BOXW, BOXH);
     stream_w = widget = XkwMakeCommand(form, NULL, widget, x_visualize_proc,
