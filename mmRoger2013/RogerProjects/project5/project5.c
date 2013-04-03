@@ -44,6 +44,7 @@ Robot* roger;
     
     CONTROL_STEP = 2.0;
     compute_headings(roger,currentPos);
+    printf("done \n");
 }
 
 
@@ -156,7 +157,7 @@ Robot* roger;
  This will be replaced with a goal
  */
 #define NUM_SEARCH_LOCATIONS 1
-double search_locations[NUM_SEARCH_LOCATIONS][2] = { {1.45, -1.0}};
+double search_locations[NUM_SEARCH_LOCATIONS][2] = { {3.5, 0.0}};
 /*
  / Initializes a set a search locations in the occupancy grid / potentential map
  / Can be called whenever you want to set/renew the search goals
@@ -370,7 +371,7 @@ project5_init(roger)
 Robot* roger;
 {
 	//insert the walls
-	draw_room(roger);
+//	draw_room(roger);
 	
 	//dilate the obstacles
 	dilate_obstacles(roger);
@@ -459,7 +460,7 @@ int curr;
 {
     int i, j, xbin, ybin, already_used[NXBINS][NYBINS];
 	double compute_gradient(), mag, grad[2], x, y;
-	double headings[50];
+	double headings[200];
 	
 	double high,low,average;
 
@@ -498,7 +499,7 @@ int curr;
 			 //printf("loop: %d position: (%f, %f) looking at (%f, %f) change: %f\n", loops, x1, y1, x, y, ((change*(180/3.14159))) );
             
              if (fabs(change) > 0.001) {
-           //  printf("change at %f %f: %f\n", x, y, (change*(180/3.14159)));
+           		//  printf("change at %f %f: %f\n", x, y, (change*(180/3.14159)));
              }
              
             x -= STEP*grad[0];
@@ -506,14 +507,13 @@ int curr;
             
             ybin = (int)((MAX_Y-y)/YDELTA);
             xbin = (int)((x-MIN_X)/XDELTA);
- 
- 			
- 
         }
     }
-    double vel_g_cu[50];
+    
     int k; 
     int size = sizeof(headings) / sizeof(int);
+    double vel_g_cu[size];
+	printf(" %i \n" , loops);
     double a = .01;
      
     for (k = 0 ; k < size - 1 ;k++){
@@ -557,7 +557,7 @@ int curr;
 		     // printf("%f \n" , vel_g_cu[k+1]);
     }
 	//}
-	printf("%s %f %f \n" ,"current", vel_g_cu[0] , vel_g_cu[5]);
+	//printf("%s %f %f \n" ,"current", vel_g_cu[0] , vel_g_cu[5]);
 	if(vel_g_cu[0] > high){
 		CONTROL_STEP = 1.5;
 	}
@@ -568,7 +568,7 @@ int curr;
 		CONTROL_STEP = .5;
 	}
    // CONTROL_STEP = CONTROL_STEP*(vel_g_cu[0]);
-    
+    CONTROL_STEP = 2.0;
     
 }
 

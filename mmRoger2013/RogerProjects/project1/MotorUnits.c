@@ -31,7 +31,7 @@ double time;
 
 
 	double velocity = sqrt((roger->base_velocity[X]*roger->base_velocity[X])+(roger->base_velocity[Y]*roger->base_velocity[Y]));
-	printf("%f %f \n" , time , velocity );
+	//printf("%f %f \n" , time , velocity );
 	
 }
 

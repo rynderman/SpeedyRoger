@@ -1099,6 +1099,11 @@ Robot * roger;
 //  fflush(stdout);
 //}
 
+
+
+
+
+
 draw_all() 
 {
   int n;
