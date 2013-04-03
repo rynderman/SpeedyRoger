@@ -123,6 +123,134 @@ int argc;char **argv;
     XtAppMainLoop(app_con);
 }
 
+double gradient(x, y, roger, grad)
+double x, y;
+Robot * roger;
+double grad[2]; // grad = [ d(phi)/dx  d(phi)/dy ] ~ [ d(phi)/dj  -d(phi)/di ]
+{
+	int i0,i1,j0,j1;
+	double mag, dphi_di, dphi_dj, del_x, del_y;
+    
+	j0 = (int) ((x-MIN_X)/XDELTA);
+	j1 = (j0+1);
+	i1 = NYBINS - (int) ((y - MIN_Y)/YDELTA);
+	i0 = (i1-1);
+    
+	del_x = (x-MIN_X)/XDELTA - j0;
+	del_y = (NYBINS - (y - MIN_Y)/YDELTA) - i0;
+    
+	dphi_dj = ((1.0-del_y)*(roger->world_map.potential_map[i0][j1] -
+                            roger->world_map.potential_map[i0][j0] ) +
+               (del_y)*(roger->world_map.potential_map[i1][j1] -
+                        roger->world_map.potential_map[i1][j0]  ) );
+	dphi_di = ((1.0-del_x)*(roger->world_map.potential_map[i1][j0] -
+                            roger->world_map.potential_map[i0][j0] ) +
+               (del_x)*(roger->world_map.potential_map[i1][j1] -
+                        roger->world_map.potential_map[i0][j1]  ) );
+    
+	grad[0] = dphi_dj; grad[1] = -dphi_di;
+    
+	mag = sqrt(SQR(grad[0])+SQR(grad[1]));
+    
+	if (mag>THRESHOLD) {
+		grad[0] /= mag; grad[1] /= mag;
+	}
+	else {
+		grad[0] = grad[1] = 0;
+	}
+	return(mag);
+}
+#define STEP         0.01
+visual(roger)
+Robot* roger;
+{
+    
+	int i, j, xbin, ybin, already_used[NYBINS][NXBINS];
+	double gradient(), mag, grad[2], x, y;
+	//void draw_roger(), draw_object(), draw_frames(), mark_used(), draw_history();
+	
+	printf("Project 5 visualize called. \n");
+
+	// make sure it converged
+	sor(roger);
+	
+	// initialize auxilliary structure for controlling the
+	// density of streamlines rendered
+	for (i=0; i<NYBINS; ++i) {
+		for (j=0; j<NXBINS; ++j) {
+			already_used[i][j] = FALSE;
+		}
+	}
+	
+		
+	// If [row,col] is FREESPACE and at least one of its neighbors
+	// is OBSTACLE, then draw a streamline
+	for (i=1;i<(NYBINS-1);i+=1) {
+		for (j=1;j<(NXBINS-1);j+=1) {
+			if ((roger->world_map.occupancy_map[i][j] == FREESPACE) &&
+				((roger->world_map.occupancy_map[i-1][j-1] == OBSTACLE) ||
+				 (roger->world_map.occupancy_map[i-1][j] == OBSTACLE)   ||
+				 (roger->world_map.occupancy_map[i-1][j+1] == OBSTACLE) ||
+				 (roger->world_map.occupancy_map[i][j-1] == OBSTACLE)   ||
+				 (roger->world_map.occupancy_map[i][j+1] == OBSTACLE)   ||
+				 (roger->world_map.occupancy_map[i+1][j-1] == OBSTACLE) ||
+				 (roger->world_map.occupancy_map[i+1][j] == OBSTACLE)   ||
+				 (roger->world_map.occupancy_map[i+1][j+1] == OBSTACLE) || 
+				 
+				 (roger->world_map.occupancy_map[i-1][j-1] == DILATED_OBSTACLE) ||
+				 (roger->world_map.occupancy_map[i-1][j] == DILATED_OBSTACLE)   ||
+				 (roger->world_map.occupancy_map[i-1][j+1] == DILATED_OBSTACLE) ||
+				 (roger->world_map.occupancy_map[i][j-1] == DILATED_OBSTACLE)   ||
+				 (roger->world_map.occupancy_map[i][j+1] == DILATED_OBSTACLE)   ||
+				 (roger->world_map.occupancy_map[i+1][j-1] == DILATED_OBSTACLE) ||
+				 (roger->world_map.occupancy_map[i+1][j] == DILATED_OBSTACLE)   ||
+				 (roger->world_map.occupancy_map[i+1][j+1] == DILATED_OBSTACLE) ) ) 
+			{
+				
+				// follow a stream line
+				x = MIN_X + (j+0.5)*XDELTA;
+				y = MAX_Y - (i+0.5)*YDELTA;
+				ybin = i; xbin = j;
+				
+				if (!already_used[ybin][xbin]) {
+					int loops = 0;
+					while ((roger->world_map.occupancy_map[ybin][xbin] != GOAL) &&
+						   (loops++ < 1000)) {
+						mag = compute_gradient(x, y, roger, grad);
+						if (mag < THRESHOLD) {
+							//TODO: Prevent uninitialized harmonic map to try to print stream
+							//printf("gradient magnitude is too small %6.4lf\n", mag);
+						}
+						else {
+							// printf("gradientmag: %f gx:%f gy:%f stream:%d x:%d y:%d\n", 
+							//	   mag, grad[0], grad[1], streamIdx, bin_ti, bin_tj);
+							
+							
+							//printf("Draw test before \n" );
+							x_draw_line(GOAL_COLOR, x, y, x-STEP*grad[0], y-STEP*grad[1]);
+							//printf("Draw test after \n" );
+
+							x -= STEP*grad[0];
+							y -= STEP*grad[1];
+							
+							ybin = (int)((MAX_Y-y)/YDELTA);
+							xbin = (int)((x-MIN_X)/XDELTA);
+						}
+					}
+					mark_used((i+1), (j+1), already_used);
+				}
+			}
+		}
+	}
+}
+
+
+
+
+
+
+
+
 x_init_colors()
 {
     int i;
@@ -732,6 +860,8 @@ Robot * roger;
 
 draw_all()
 {
+	visual(Roger);
+
     int n;
     char buffer[64];
     void draw_potential_maps(),  draw_roger();
