@@ -64,7 +64,7 @@ double kd_arm = 17; //KD_ARM;
 
 /* PROJECT #1.2 - PD CONTROLLER FOR THE ARMS                             */
 /* setpoints - joint angles in radians for the shoulders and elbows      */
-
+/*
 PDController_arms(roger, time)
 Robot * roger;
 double time;
@@ -90,7 +90,7 @@ double time;
         //roger->arm_torque[i][1] = ...
     }
 }
-
+*/
 
 /* PROJECT #2.1 - PD CONTROLLER FOR THE BASE                             */
 /* setpoints - (xy) location for translation heading in radians          */
@@ -126,6 +126,7 @@ double time;
 {
     double Fx;
     
+    /*
     int i, j;
     double wTb[4][4], bTw[4][4], e[2], e_dot[2];
     double ref_b[4], ref_w[4], v_b[4], v_w[4];
@@ -155,6 +156,8 @@ double time;
     
     v_b[Y] = v_b[Y] + roger->base_velocity[2] * BASE_CONTROL_OFFSET;
     Fx = kp_base_trans*e[X] - kd_base_trans*v_b[X];
+     */
+     
     return(Fx);
 }
 
@@ -169,7 +172,9 @@ double time;
 {
     double Mz;
     //Mz = ...
+    // mz = heading error * moment stuff?
 
+/*
     int i, j;
     double wTb[4][4], bTw[4][4], e[2], e_dot[2];
     double ref_b[4], ref_w[4], v_b[4], v_w[4];
@@ -201,6 +206,7 @@ double time;
     
     double force_y = kp_base_rot*e[Y] - kd_base_rot*v_b[Y];
     Mz = force_y*BASE_CONTROL_OFFSET;
+    */
     
     return(Mz);
 }
