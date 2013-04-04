@@ -474,7 +474,24 @@ int curr;
         if (mag < THRESHOLD) {
         }
         else{
-            float change = atan2(y-STEP*grad[1], x-STEP*grad[0]) - atan2(y, x) ;
+
+            
+            // *************************************************
+            //
+            // Let's try this:
+            //
+            // loop over whole path, compute headings
+            //      mag = compute_gradient(x, y, roger, grad);
+            //      headings[i] = atan2(grad[1], grad[0])
+            //
+            // loop over headings to find change in headings
+            //      changes_in_heading[i] = heading[i] - heading[i-1] // do bounds checking [i-1]
+            //
+            // compute velocities for every change in heading
+            //
+            // *************************************************
+            
+            
             change = fabs(change);
             
             headings[loops] = change;
