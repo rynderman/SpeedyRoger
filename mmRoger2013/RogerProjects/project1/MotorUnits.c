@@ -7,7 +7,7 @@
 /*************************************************************************/
 #include <math.h>
 #include <stdio.h>
-#include "Xkw/Xkw.h"
+// #include "Xkw/Xkw.h"
 
 #include "Roger.h"
 #include "simulate.h"
@@ -26,13 +26,8 @@ double time;
     
     // turn setpoint references into torques
     PDController_eyes(roger, time);
-    //PDController_arms(roger, time);
+    PDController_arms(roger, time);
     PDController_base(roger,time);
-
-
-	double velocity = sqrt((roger->base_velocity[X]*roger->base_velocity[X])+(roger->base_velocity[Y]*roger->base_velocity[Y]));
-	//printf("%f %f \n" , time , velocity );
-	
 }
 
 /*************************************************************************/
@@ -40,8 +35,8 @@ double time;
 /*************************************************************************/
 
 // gains for the PD controllers for eyes
-double kp_eye = 4.0; //KP_EYE
-double kd_eye = (sqrt(4.0*4.0*I_EYE)); //(sqrt(4.0*kp_eye*I_EYE)); //KD_EYE;
+double kp_eye = 1.0; //KP_EYE
+double kd_eye = (sqrt(4.0*1.0*I_EYE)); //(sqrt(4.0*kp_eye*I_EYE)); //KD_EYE;
 
 /* PROJECT #1.1 - PD CONTROLLER FOR THE EYES                             */
 /* setpoints are joint angle values in radians for the eyes              */
@@ -54,7 +49,13 @@ double time;
     
     for (i = 0; i < NEYES; i++) {
         theta_error = roger->eyes_setpoint[i] - roger->eye_theta[i];
-        roger->eye_torque[i] = kp_eye*theta_error - kd_eye*roger->eye_theta_dot[i];
+        
+        theta_ddot_des = kp_eye*theta_error - kd_eye*roger->eye_theta_dot[i];
+        
+        // feedforward compensator
+        // roger->eye_torque[i] = (M_EYE*SQR(L_EYE)) * theta_ddot_des +
+        //       M_EYE*GRAVITY*L_EYE*cos(roger->eye_theta[i]);
+        roger->eye_torque[i] = theta_ddot_des;
     }
 }
 
@@ -64,7 +65,6 @@ double kd_arm = 17; //KD_ARM;
 
 /* PROJECT #1.2 - PD CONTROLLER FOR THE ARMS                             */
 /* setpoints - joint angles in radians for the shoulders and elbows      */
-/*
 PDController_arms(roger, time)
 Robot * roger;
 double time;
@@ -85,18 +85,26 @@ double time;
         while (theta_error[1] < -M_PI) theta_error[1] += 2.0 * M_PI;
         
         // tune kp_arm and kd_arm by changing their value using enter_params()
+        acc[0] = kp_arm * (theta_error[0]) +
+        kd_arm * (0.0 - roger->arm_theta_dot[i][0]);
+        acc[1] = kp_arm * (theta_error[1]) +
+        kd_arm * (0.0 - roger->arm_theta_dot[i][1]);
         
-        //roger->arm_torque[i][0] = ...
-        //roger->arm_torque[i][1] = ...
+        roger->arm_torque[i][0] = acc[0];
+        roger->arm_torque[i][1] = acc[1];
     }
 }
-*/
 
-/* PROJECT #2.1 - PD CONTROLLER FOR THE BASE                             */
+/* PROJECT #1.3 - PD CONTROLLER FOR THE BASE                             */
 /* setpoints - (xy) location for translation heading in radians          */
 
+/*   the base differential drive Jacobian:                               */
+/*    |tau_l|     |Fx|      |  x_dot  |     |theta_dot_left |            */
+/*    |     |= JT |  |      |         | = J |               |            */
+/*    |tau_r| =   |Mz|      |theta_dot|     |theta_dot_right|            */
 
-//double baseJT[2][2] = ...
+double baseJT[2][2] = {{(1.0/2.0), -(1.0/(2.0*R_AXLE))},
+    {(1.0/2.0),  (1.0/(2.0*R_AXLE))} };
 
 PDController_base(roger, time)
 Robot * roger;
@@ -108,105 +116,53 @@ double time;
     Mz = PDBase_rotate(roger,time);
     
     // integrated wheel torque control
-    roger->wheel_torque[LEFT] = Fx/2 - Mz/(2*0.2);
-    roger->wheel_torque[RIGHT] = Fx/2 + Mz/(2*0.2);
+    roger->wheel_torque[LEFT] = baseJT[0][0]*Fx + baseJT[0][1]*Mz;
+    roger->wheel_torque[RIGHT] = baseJT[1][0]*Fx + baseJT[1][1]*Mz;
 }
 
 // gains for base translational controller
-//double kp_base_trans = 175.0; // KP_BASE      M=0.9 kg //mass of eyes?
-//double kd_base_trans = 25.0;  // KD_BASE  should be critical sqrt(4KM)
-
-double kp_base_trans = 130.0; // KP_BASE      M=0.9 kg //mass of eyes?220
-double kd_base_trans = 24.0;  // KD_BASE  should be critical sqrt(4KM)
+double kp_base_trans = 175.0; // KP_BASE      M=0.9 kg //mass of eyes?
+double kd_base_trans = 25.0;  // KD_BASE  should be critical sqrt(4KM)
 
 /* Base PD controller, Cartesian reference */
 double PDBase_translate(roger, time)
 Robot * roger;
 double time;
 {
-    double Fx;
+    double Fx, error[2], trans_error, trans_vel;
     
-    /*
-    int i, j;
-    double wTb[4][4], bTw[4][4], e[2], e_dot[2];
-    double ref_b[4], ref_w[4], v_b[4], v_w[4];
+    error[X] = roger->base_setpoint[X] - roger->base_position[X];
+    error[Y] = roger->base_setpoint[Y] - roger->base_position[Y];
+    // position error between setpoint and yoke tip
     
-    // construct the homogeneous transform from the world to the mobile base
-    construct_wTb(roger->base_position, wTb);
+    trans_error = error[X]*cos(roger->base_position[THETA]) +
+    error[Y]*sin(roger->base_position[THETA]);
     
-    // position feedback
-    inverse_homogeneous_xform(wTb, bTw);
+    trans_vel = roger->base_velocity[X]*cos(roger->base_position[THETA]) +
+    roger->base_velocity[Y]*sin(roger->base_position[THETA]);
     
-    ref_w[0] = roger->base_setpoint[X];
-    ref_w[1] = roger->base_setpoint[Y];
-    ref_w[2] = 0.0;
-    ref_w[3] = 1.0;
+    Fx = kp_base_trans * trans_error - kd_base_trans * trans_vel;
     
-    matrix_times_vector(bTw, ref_w, ref_b);
-    
-    // "control yoke" - the control offset of the mobile base in base coordinates
-    e[X] = ref_b[X] - BASE_CONTROL_OFFSET;
-    e[Y] = ref_b[Y];
-    
-    v_w[0] = roger->base_velocity[X];
-    v_w[1] = roger->base_velocity[Y];
-    v_w[2] = 0.0;
-    v_w[3] = 0.0; // not a position vector
-    matrix_times_vector(bTw, v_w, v_b);
-    
-    v_b[Y] = v_b[Y] + roger->base_velocity[2] * BASE_CONTROL_OFFSET;
-    Fx = kp_base_trans*e[X] - kd_base_trans*v_b[X];
-     */
-     
     return(Fx);
 }
 
 // gains for base rotational controller
-double kp_base_rot = 150;   //KP_BASE                I=0.0234 kg m^2 250
-double kd_base_rot = 65.0;   //KD_BASE   should be critical sqrt(4KI)
+double kp_base_rot = 100.0;   //KP_BASE                I=0.0234 kg m^2
+double kd_base_rot = 3.059;   //KD_BASE   should be critical sqrt(4KI)
 
 /* Base PD controller, Cartesian reference */
 double PDBase_rotate(roger, time)
 Robot * roger;
 double time;
 {
-    double Mz;
-    //Mz = ...
-    // mz = heading error * moment stuff?
-
-/*
-    int i, j;
-    double wTb[4][4], bTw[4][4], e[2], e_dot[2];
-    double ref_b[4], ref_w[4], v_b[4], v_w[4];
+    double theta_error, Mz;
     
-    construct_wTb(roger->base_position, wTb);
+    theta_error = roger->base_setpoint[THETA] - roger->base_position[THETA];
     
-    // position feedback
-    inverse_homogeneous_xform(wTb, bTw);
+    while (theta_error > M_PI) theta_error -= 2.0 * M_PI;
+    while (theta_error < -M_PI) theta_error += 2.0 * M_PI;
     
-    ref_w[0] = roger->base_setpoint[X];
-    ref_w[1] = roger->base_setpoint[Y];
-    ref_w[2] = 0.0;
-    ref_w[3] = 1.0;
-    
-    matrix_times_vector(bTw, ref_w, ref_b);
-    
-    // "control yoke" - the control offset of the mobile base in base coordinates
-    e[X] = ref_b[X] - BASE_CONTROL_OFFSET;
-    e[Y] = ref_b[Y];
-    
-    v_w[0] = roger->base_velocity[X];
-    v_w[1] = roger->base_velocity[Y];
-    v_w[2] = 0.0;
-    v_w[3] = 0.0; // not a position vector
-    matrix_times_vector(bTw, v_w, v_b);
-    
-    //add influence of angular velocity of body
-    v_b[Y] = v_b[Y] + roger->base_velocity[2] * BASE_CONTROL_OFFSET;
-    
-    double force_y = kp_base_rot*e[Y] - kd_base_rot*v_b[Y];
-    Mz = force_y*BASE_CONTROL_OFFSET;
-    */
+    Mz = kp_base_rot * theta_error - kd_base_rot * roger->base_velocity[THETA];
     
     return(Mz);
 }

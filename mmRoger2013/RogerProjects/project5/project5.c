@@ -15,8 +15,6 @@
 
 
 int project5_initialized = FALSE;
-double CONTROL_STEP = 2.0;
-int currentPos = 0;
 
 project5_control(roger)
 Robot* roger;
@@ -29,16 +27,15 @@ Robot* roger;
 		project5_init(roger);
 		project5_initialized = TRUE;
 	}
-	
-    if(currentPos >= 100){
-    	currentPos = 0; 
-    }
+
 	sor(roger);
     
-    state = primitive4(roger);
+    //state = primitive4(roger);
     
-    CONTROL_STEP = 2.0;
-    compute_headings(roger,currentPos);
+    
+    
+    // tells the velocity controller what velocity to set, calls sor(roger)
+    control_velocity(roger);
 }
 
 
@@ -236,7 +233,7 @@ Robot * roger;
 //--------------Primitive4 - follow gradient of harmonic function-------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-//#define CONTROL_STEP 0.6
+#define CONTROL_STEP 2.0
 
 /*
  / Harmonic function path planner / follower. It will follow a gradient in the potential map
@@ -432,160 +429,121 @@ Robot *roger;
 		}
 	}
 }
+#define STEP 0.3 // STEP in meters along path
+//#define GOAL_X 20.0 // meters
+//#define GOAL_Y 20.0 //sin(GOAL_X) // meters
 
-#define STEP         0.03
-#define MAX_V        16.0
+// Represents the starting velocity at which this algorithm is run
+//const double CURRENT_V = 0.0;
 
-// This should now be called compute_control_step
-compute_headings(roger , curr)
-Robot* roger;
-int curr;
-{
-    int i, j, xbin, ybin, already_used[NXBINS][NYBINS];
-	double compute_gradient(), mag, grad[2], x, y;
-	double headings[200];
-	
-	double high,low,average;
+// Max curve is the sharpest turn you can do and still have longitudinal velocity
+//const double MAX_CURVE = 0.08727f; // radians, 5 degrees
+const double MAX_CURVE = 3.14159; // radians, 5 degrees
 
-	//printf("compute heaings called.\n");
-    
-	// make sure it converged
-	sor(roger);
-	
-	// initialize auxilliary structure for controlling the
-	// density of streamlines rendered
-    float x1 = roger->base_position[X];
-    float y1 = roger->base_position[Y];
-    
-    i = (int)((MAX_Y - y1)/YDELTA);
-    j = (int)((x1 - MIN_X)/XDELTA);
-    
-    ybin = i; xbin = j;
-    
-    // follow a stream line
-    x = MIN_X + (j+0.5)*XDELTA;
-    y = MAX_Y - (i+0.5)*YDELTA;
-    
-    int loops = 0;
-    while (((roger->world_map.occupancy_map[ybin][xbin] != GOAL)&&(loops < 100)) || (loops < 100)) {
-        loops++;
-        mag = compute_gradient(x, y, roger, grad);
-        
-        if (mag < THRESHOLD) {
-        }
-        else{
+// Min curve is the sharpest turn you can do at max velocity
+//const double MIN_CURVE = 0.01745f; // radians, 1 degree
+const double MIN_CURVE = 0.0; // radians, 1 degree
 
-            
-            // *************************************************
-            //
-            // Let's try this:
-            //
-            // loop over whole path, compute headings
-            //      mag = compute_gradient(x, y, roger, grad);
-            //      headings[i] = atan2(grad[1], grad[0])
-            //
-            // loop over headings to find change in headings
-            //      changes_in_heading[i] = heading[i] - heading[i-1] // do bounds checking [i-1]
-            //
-            // compute velocities for every change in heading
-            //
-            // *************************************************
-            
-            
-            change = fabs(change);
-            
-            headings[loops] = change;
-            
-			 //printf("loop: %d position: (%f, %f) looking at (%f, %f) change: %f\n", loops, x1, y1, x, y, ((change*(180/3.14159))) );
-            
-             if (fabs(change) > 0.001) {
-           		//  printf("change at %f %f: %f\n", x, y, (change*(180/3.14159)));
-             }
-             
-            x -= STEP*grad[0];
-            y -= STEP*grad[1];
-            
-            ybin = (int)((MAX_Y-y)/YDELTA);
-            xbin = (int)((x-MIN_X)/XDELTA);
-        }
-    }
-    
-    int k; 
-    int size = sizeof(headings) / sizeof(int);
-    double vel_g_cu[size];
-	printf(" %i \n" , loops);
-    double a = .01;
-     
-    for (k = 0 ; k < size - 1 ;k++){
-        double current;
-    	current = headings[k];
-    	current = ((current-(3.1415/4.0))/(3.1415/4.0));
-    	current = fabs(current);
-		//current = current*MAX_V;
-	
-		if(current > high){
-			high = current;
-		}
-		if(current < low){
-			low = current;
-		}
-		average = average + current;
- 		vel_g_cu[k] = current; 
- 		
- 		
-		//printf("%f  %f %f \n" , current , average,size );
-		
-    } 
-	
-	average = average / size;
-    high = average + ((high-average)/10.0);
-	low = average - ((average-low)/10.0);
-	//	printf("%f %f %f  \n" , average,high,low  );
+// Some selected max v
+const double MAX_V = 10.0f; // meters/second
 
-	int count = 0;
-	
-	//for(count =0;count < 1000; count++){
-    for (k = 0; k < size-1; k++){
-        if (vel_g_cu[k]+a < vel_g_cu[k+1])
-            vel_g_cu[k+1] = vel_g_cu[k]+a;
-    }
-    for (k = size-1; k > 0; k--){
-        if (vel_g_cu[k-1] > vel_g_cu[k]+a)
-           vel_g_cu[k-1] = vel_g_cu[k]+a;
-		     // printf("%f \n" , vel_g_cu[k+1]);
-    }
-	//}
-	//printf("%s %f %f \n" ,"current", vel_g_cu[0] , vel_g_cu[5]);
-	if(vel_g_cu[0] > high){
-		CONTROL_STEP = 1.5;
-	}
-	if((vel_g_cu[0] < high) && ( vel_g_cu[0] > low) ){
-		CONTROL_STEP = 1.0;
-	}
-	if(vel_g_cu[0] < low){
-		CONTROL_STEP = .5;
-	}
-   // CONTROL_STEP = CONTROL_STEP*(vel_g_cu[0]);
-    CONTROL_STEP = 2.0;
-    
-}
+// Best safe performance for motors
+const double MAX_A = 0.33f; // m/s^2
 
-double *computeSmooth (double *g_cu_path, double size, double a){
-    double* vel_g_cu = g_cu_path;
-    int i; 
-     
+
+void smooth(double *vel_g_cu, int size, double a){
+    int i;
     for (i = 0; i < size-1; i++){
         if (vel_g_cu[i]+a < vel_g_cu[i+1])
             vel_g_cu[i+1] = vel_g_cu[i]+a;
     }
     for (i = size-1; i > 0; i--){
         if (vel_g_cu[i-1] > vel_g_cu[i]+a)
-           vel_g_cu[i-1] = vel_g_cu[i]+a;
+            vel_g_cu[i-1] = vel_g_cu[i]+a;
     }
-    return vel_g_cu;
 }
 
+control_velocity(roger)
+Robot* roger;
+{
+    int xbin, ybin, already_used[NXBINS][NYBINS];
+	double compute_gradient(), mag, grad[2], x, y;
+	double headings[1000];
+    
+    int index = 0;
+    
+    // Find stat position
+    sor(roger);
+	
+	// initialize auxilliary structure for controlling the
+	// density of streamlines rendered
+    x = roger->base_position[X];
+    y = roger->base_position[Y];
+    
+    ybin = (int)((MAX_Y - y)/YDELTA);
+    xbin = (int)((x - MIN_X)/XDELTA);
+    
+    // Compute Headings
+    while (roger->world_map.occupancy_map[ybin][xbin] != GOAL) {
+        
+        // get the gradient
+        mag = compute_gradient(x, y, roger, grad);
+        printf("mag: %f\n", mag);
 
+        
+        if (mag < THRESHOLD) {
+            break;
+        }
+        
+        // set heading
+        headings[index] = atan2(grad[0], grad[1]);
+        
+        // go along the path
+        x -= STEP*grad[0];
+        y -= STEP*grad[1];
+        
+        // find the bin we're in
+        ybin = (int)((MAX_Y-y)/YDELTA);
+        xbin = (int)((x-MIN_X)/XDELTA);
+        
+        index++;
+
+        printf("grad: %f\t%f\n", grad[0], grad[1]);
+        printf("bin: %d\t%d\n", xbin, ybin);
+        printf("pos: %f\t%f\n\n", x, y);
+    }
+
+    if (mag) {
+        // Compute change in headings
+        double change[index];
+        int i=0;
+        for (i = 0; i < index - 1; i++) {
+            change[i] = fabs(headings[i+1] - headings[i]);
+        }
+        // Compute the Max allowed velocity
+        double velocity[index];
+        for (i = 0; i < index; i++) {
+            if (change[i] < MIN_CURVE) {
+                velocity[i] = MAX_V;
+            }else if(change[i] > MAX_CURVE){
+                velocity[i] = 0.0f;
+            }else{
+                // Linear increase should be the square of change
+                velocity[i] = MAX_V*(change[i]/MAX_CURVE);
+            }
+        }
+        // Set the current longitudinal velocity
+        velocity[0] = sqrt((roger->base_velocity[X]*roger->base_velocity[X])+(roger->base_velocity[Y]*roger->base_velocity[Y]));
+        // Set the ending velocity
+        velocity[index-1] = 0.0f;
+        
+        // Smooth the velocities
+        smooth(velocity, index, MAX_A);
+        
+        // set the velocity to velocity[0];
+        printf("Go %f m/s, thanks\n", velocity[0]);
+    }
+}
 
 //use cartesian space input from mouse including mouse button info
 project5_cartesian_input(roger, x, y, button)
@@ -598,20 +556,7 @@ int button;		//mouse button
 	printf("Project 5 input - x: %4.3f, y: %4.3f - button: %d\n", x, y, button);
     
 }
-
-//use configuration space input from mouse including mouse button info and interface side
-project5_configuration_input(roger, q1, q2, side, button)
-Robot* roger;
-double q1;		//q1 value
-double q2;		//q2 value
-int side;		//left or right side interface
-int button;		//mouse button
-{
-    
-	printf("Project 5 input - q1: %4.3f, q2: %4.3f - side: %s, button: %d\n", q1, q2, (side == LEFT  ? "left": "right"), button);
-    
-}
-
+ 
 // this procedure can be used to prompt for and read user customized input values
 project5_enter_params()
 {
@@ -684,13 +629,7 @@ Robot* roger;
 							//printf("gradient magnitude is too small %6.4lf\n", mag);
 						}
 						else {
-							// printf("gradientmag: %f gx:%f gy:%f stream:%d x:%d y:%d\n", 
-							//	   mag, grad[0], grad[1], streamIdx, bin_ti, bin_tj);
-							
-							
-							//printf("Draw test before \n" );
 							x_draw_line(GOAL_COLOR, x, y, x-STEP*grad[0], y-STEP*grad[1]);
-							//printf("Draw test after \n" );
 
 							x -= STEP*grad[0];
 							y -= STEP*grad[1];
