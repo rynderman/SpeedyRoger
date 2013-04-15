@@ -429,7 +429,8 @@ Robot *roger;
 		}
 	}
 }
-#define STEP 0.3 // STEP in meters along path
+#define STEP 0.1 // STEP in meters along path
+
 //#define GOAL_X 20.0 // meters
 //#define GOAL_Y 20.0 //sin(GOAL_X) // meters
 
@@ -468,7 +469,7 @@ Robot* roger;
 {
     int xbin, ybin, already_used[NXBINS][NYBINS];
 	double compute_gradient(), mag, grad[2], x, y;
-	double headings[1000];
+	double headings[200];
     
     int index = 0;
     
@@ -483,18 +484,11 @@ Robot* roger;
     ybin = (int)((MAX_Y - y)/YDELTA);
     xbin = (int)((x - MIN_X)/XDELTA);
     
+    mag = compute_gradient(x, y, roger, grad);
+    
     // Compute Headings
-    while (roger->world_map.occupancy_map[ybin][xbin] != GOAL) {
-        
-        // get the gradient
-        mag = compute_gradient(x, y, roger, grad);
-        printf("mag: %f\n", mag);
-
-        
-        if (mag < THRESHOLD) {
-            break;
-        }
-        
+    while ((mag > THRESHOLD) && (roger->world_map.occupancy_map[ybin][xbin] != GOAL)) {
+                
         // set heading
         headings[index] = atan2(grad[0], grad[1]);
         
@@ -507,13 +501,12 @@ Robot* roger;
         xbin = (int)((x-MIN_X)/XDELTA);
         
         index++;
-
-        printf("grad: %f\t%f\n", grad[0], grad[1]);
-        printf("bin: %d\t%d\n", xbin, ybin);
-        printf("pos: %f\t%f\n\n", x, y);
+        
+        // get the gradient
+        mag = compute_gradient(x, y, roger, grad);
     }
 
-    if (mag) {
+    if (mag > THRESHOLD) {
         // Compute change in headings
         double change[index];
         int i=0;
@@ -541,7 +534,7 @@ Robot* roger;
         smooth(velocity, index, MAX_A);
         
         // set the velocity to velocity[0];
-        printf("Go %f m/s, thanks\n", velocity[0]);
+        printf("Go %f m/s\n", velocity[1], index);
     }
 }
 
@@ -564,7 +557,7 @@ project5_enter_params()
     
 }
 
-#define STEP         0.01
+//#define STEP         0.01
 
 /* do not alter */
 //function called when the 'visualize' button on the gui is pressed
