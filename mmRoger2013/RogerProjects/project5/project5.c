@@ -27,7 +27,7 @@ Robot* roger;
 		project5_init(roger);
 		project5_initialized = TRUE;
 	}
-
+    
 	sor(roger);
     
     //state = primitive4(roger);
@@ -176,7 +176,7 @@ Robot * roger;
 		if (sor_once(roger) < THRESHOLD)
 			converged = TRUE;
 	}
-   // printf("Sor called\n");
+    // printf("Sor called\n");
     
 	if (sor_count > 1)
 		printf("completed harmonic function --- %d iterations\n", sor_count);
@@ -351,7 +351,7 @@ project5_init(roger)
 Robot* roger;
 {
 	//insert the walls
-//	draw_room(roger);
+    //	draw_room(roger);
 	
 	//dilate the obstacles
 	dilate_obstacles(roger);
@@ -464,13 +464,14 @@ void smooth(double *vel_g_cu, int size, double a){
     }
 }
 
+#define SIZE 200
 // Our awesome function. Needs to take into account 1/r^2 relationship with velocity
 control_velocity(roger)
 Robot* roger;
 {
     int xbin, ybin, already_used[NXBINS][NYBINS];
 	double compute_gradient(), mag, grad[2], x, y;
-	double headings[200];
+	double headings[SIZE];
     
     int index = 0;
     
@@ -489,7 +490,7 @@ Robot* roger;
     
     // Compute Headings
     while ((mag > THRESHOLD) && (roger->world_map.occupancy_map[ybin][xbin] != GOAL)) {
-                
+        
         // set heading
         headings[index] = atan2(grad[0], grad[1]);
         
@@ -502,11 +503,15 @@ Robot* roger;
         xbin = (int)((x-MIN_X)/XDELTA);
         
         index++;
+        if (index >= SIZE) {
+            printf("MAKE SIZE BIGGER");
+            break;
+        }
         
         // get the gradient
         mag = compute_gradient(x, y, roger, grad);
     }
-
+    
     if (mag > THRESHOLD) {
         // Compute change in headings
         double change[index];
@@ -545,6 +550,7 @@ Robot* roger;
     int xbin, ybin;
     
     int x, y = 0;
+    // Read in x and y
     printf("Read in - x: %4.3f, y: %4.3f - button: %d\n", x, y, roger->button_event);
     
     xbin = (x - MIN_X) / XDELTA;
@@ -552,40 +558,16 @@ Robot* roger;
     if ((xbin<0) || (xbin>(NXBINS-1)) || (ybin<0) || (ybin>(NYBINS-1))) {
         printf("Out of the boundary!!!\n");
     }
-    else {
-        if (roger->button_event == LEFT_BUTTON) { // obstacles in Cartesian space
-            if (roger->world_map.occupancy_map[ybin][xbin] == OBSTACLE) {
-                printf("deleting an obstacle xbin=%d  ybin=%d\n", xbin, ybin);
-                fflush(stdout);
-                roger->world_map.occupancy_map[ybin][xbin] = FREESPACE;
-                //	    delete_bin_bumper(xbin,ybin);
-            }
-            else if (roger->world_map.occupancy_map[ybin][xbin] == FREESPACE) {
-                printf("inserting an obstacle xbin=%d  ybin=%d\n", xbin, ybin);
-                fflush(stdout);
-                roger->world_map.occupancy_map[ybin][xbin] = OBSTACLE;
-                roger->world_map.potential_map[ybin][xbin] = 1.0;
-                roger->world_map.color_map[ybin][xbin] = DARKYELLOW;
-            }
-        }
-        else if (roger->button_event == MIDDLE_BUTTON) { }
-        else if (roger->button_event == RIGHT_BUTTON) {
-            if (roger->world_map.occupancy_map[ybin][xbin] == GOAL) {
-                printf("deleting an goal xbin=%d  ybin=%d\n", xbin, ybin);
-                fflush(stdout);
-                roger->world_map.occupancy_map[ybin][xbin] = FREESPACE;
-            }
-            else if (roger->world_map.occupancy_map[ybin][xbin] == FREESPACE) {
-                printf("inserting an goal xbin=%d  ybin=%d\n", xbin, ybin);
-                fflush(stdout);
-                roger->world_map.occupancy_map[ybin][xbin] = GOAL;
-                roger->world_map.potential_map[ybin][xbin] = 0.0;
-            }
-        }
-        //update harmonic map
-        //sor(roger);
+    else{
+        // First set of coordinates is the goal
+        roger->world_map.occupancy_map[ybin][xbin] = GOAL;
+        roger->world_map.potential_map[ybin][xbin] = 0.0;
+        
+        // The rest are obstacles defined x1 y1 x2 y2 (line from p1 to p2) Loop until end of file adding obstacles
+        roger->world_map.occupancy_map[ybin][xbin] = OBSTACLE;
+        roger->world_map.potential_map[ybin][xbin] = 1.0;
+        roger->world_map.color_map[ybin][xbin] = DARKYELLOW;
     }
-
 }
 
 //use cartesian space input from mouse including mouse button info
@@ -620,7 +602,7 @@ Robot* roger;
 	//void draw_roger(), draw_object(), draw_frames(), mark_used(), draw_history();
 	
 	printf("Project 5 visualize called. \n");
-
+    
 	// make sure it converged
 	sor(roger);
 	
@@ -632,7 +614,7 @@ Robot* roger;
 		}
 	}
 	
-		
+    
 	// If [row,col] is FREESPACE and at least one of its neighbors
 	// is OBSTACLE, then draw a streamline
 	for (i=1;i<(NYBINS-1);i+=1) {
@@ -645,7 +627,7 @@ Robot* roger;
 				 (roger->world_map.occupancy_map[i][j+1] == OBSTACLE)   ||
 				 (roger->world_map.occupancy_map[i+1][j-1] == OBSTACLE) ||
 				 (roger->world_map.occupancy_map[i+1][j] == OBSTACLE)   ||
-				 (roger->world_map.occupancy_map[i+1][j+1] == OBSTACLE) || 
+				 (roger->world_map.occupancy_map[i+1][j+1] == OBSTACLE) ||
 				 
 				 (roger->world_map.occupancy_map[i-1][j-1] == DILATED_OBSTACLE) ||
 				 (roger->world_map.occupancy_map[i-1][j] == DILATED_OBSTACLE)   ||
@@ -654,7 +636,7 @@ Robot* roger;
 				 (roger->world_map.occupancy_map[i][j+1] == DILATED_OBSTACLE)   ||
 				 (roger->world_map.occupancy_map[i+1][j-1] == DILATED_OBSTACLE) ||
 				 (roger->world_map.occupancy_map[i+1][j] == DILATED_OBSTACLE)   ||
-				 (roger->world_map.occupancy_map[i+1][j+1] == DILATED_OBSTACLE) ) ) 
+				 (roger->world_map.occupancy_map[i+1][j+1] == DILATED_OBSTACLE) ) )
 			{
 				
 				// follow a stream line
@@ -673,7 +655,7 @@ Robot* roger;
 						}
 						else {
 							x_draw_line(GOAL_COLOR, x, y, x-STEP*grad[0], y-STEP*grad[1]);
-
+                            
 							x -= STEP*grad[0];
 							y -= STEP*grad[1];
 							
