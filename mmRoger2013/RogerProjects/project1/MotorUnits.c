@@ -31,7 +31,7 @@ double time;
 // gains for the PD controllers for eyes
 double kp_eye = 1.0; //KP_EYE
 double kd_eye = (sqrt(4.0*1.0*I_EYE)); //(sqrt(4.0*kp_eye*I_EYE)); //KD_EYE;
-
+double commandVel = 0.0;
 /* PROJECT #1.1 - PD CONTROLLER FOR THE EYES                             */
 /* setpoints are joint angle values in radians for the eyes              */
 PDController_eyes(roger, time)
@@ -65,9 +65,10 @@ double time;
 {
     double Fx, Mz, PDBase_translate(), PDBase_rotate();
     
-    Fx = PDBase_translate(roger,time);
+   // Fx = PDBase_translate(roger,time);
     Mz = PDBase_rotate(roger,time);
-    
+    Fx = commandVel;
+    printf("%f \n" ,Fx);
     // integrated wheel torque control
     roger->wheel_torque[LEFT] = baseJT[0][0]*Fx + baseJT[0][1]*Mz;
     roger->wheel_torque[RIGHT] = baseJT[1][0]*Fx + baseJT[1][1]*Mz;

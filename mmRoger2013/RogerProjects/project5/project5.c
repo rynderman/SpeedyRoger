@@ -15,7 +15,7 @@
 
 
 int project5_initialized = FALSE;
-
+double extern commandVel;
 project5_control(roger)
 Robot* roger;
 {
@@ -465,6 +465,8 @@ void smooth(double *vel_g_cu, int size, double a){
 }
 
 #define SIZE 200
+#define A 10.0
+#define ROBOT_MASS 1.0
 // Our awesome function. Needs to take into account 1/r^2 relationship with velocity
 control_velocity(roger)
 Robot* roger;
@@ -541,7 +543,18 @@ Robot* roger;
         
         // set the velocity to velocity[0];
         printf("Go %f m/s\n", velocity[1], index);
+        
+          if(velocity[0] < velocity[1]){
+    	   		commandVel = ROBOT_MASS*A;
+    
+  		  }else{
+    			commandVel = -ROBOT_MASS*A;
+   		 }
     }
+    
+  
+    
+    
 }
 
 read_map(roger)
