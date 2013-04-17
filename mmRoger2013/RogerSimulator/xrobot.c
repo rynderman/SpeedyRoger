@@ -1394,9 +1394,7 @@ void goal_detection()
 
 /***********************************************************************/
 /** Input modes --- update the setpoint data structure:            *****/
-/**    JOINT_ANGLE_INPUT mode: mouse(q1,q2) -> arm (q1, q2) ref    *****/
-/**      BASE_GOAL_INPUT mode: mouse(x,y) -> base (x,y) ref	   *****/
-/**      ARM_GOALS_INPUT mode: mouse(x,y) -> arm (x,y) ref  	   *****/
+/**      BASE_GOAL_INPUT mode: mouse(x,y) -> base (x,y) ref        *****/
 /**        BALL_POSITION mode: mouse(x,y) -> red ball (x,y)        *****/
 /**           MAP_EDITOR mode: left button(x,y) -> obstacle        *****/
 /**                            right button(x,y) -> goal           *****/

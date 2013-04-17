@@ -451,7 +451,7 @@ const double MAX_V = 10.0f; // meters/second
 // Best safe performance for motors
 const double MAX_A = 0.33f; // m/s^2
 
-
+// Our awesome smoothing algorithm
 void smooth(double *vel_g_cu, int size, double a){
     int i;
     for (i = 0; i < size-1; i++){
@@ -464,6 +464,7 @@ void smooth(double *vel_g_cu, int size, double a){
     }
 }
 
+// Our awesome function. Needs to take into account 1/r^2 relationship with velocity
 control_velocity(roger)
 Robot* roger;
 {
@@ -538,6 +539,55 @@ Robot* roger;
     }
 }
 
+read_map(roger)
+Robot* roger;
+{
+    int xbin, ybin;
+    
+    int x, y = 0;
+    printf("Read in - x: %4.3f, y: %4.3f - button: %d\n", x, y, roger->button_event);
+    
+    xbin = (x - MIN_X) / XDELTA;
+    ybin = NYBINS - (y - MIN_Y) / YDELTA;
+    if ((xbin<0) || (xbin>(NXBINS-1)) || (ybin<0) || (ybin>(NYBINS-1))) {
+        printf("Out of the boundary!!!\n");
+    }
+    else {
+        if (roger->button_event == LEFT_BUTTON) { // obstacles in Cartesian space
+            if (roger->world_map.occupancy_map[ybin][xbin] == OBSTACLE) {
+                printf("deleting an obstacle xbin=%d  ybin=%d\n", xbin, ybin);
+                fflush(stdout);
+                roger->world_map.occupancy_map[ybin][xbin] = FREESPACE;
+                //	    delete_bin_bumper(xbin,ybin);
+            }
+            else if (roger->world_map.occupancy_map[ybin][xbin] == FREESPACE) {
+                printf("inserting an obstacle xbin=%d  ybin=%d\n", xbin, ybin);
+                fflush(stdout);
+                roger->world_map.occupancy_map[ybin][xbin] = OBSTACLE;
+                roger->world_map.potential_map[ybin][xbin] = 1.0;
+                roger->world_map.color_map[ybin][xbin] = DARKYELLOW;
+            }
+        }
+        else if (roger->button_event == MIDDLE_BUTTON) { }
+        else if (roger->button_event == RIGHT_BUTTON) {
+            if (roger->world_map.occupancy_map[ybin][xbin] == GOAL) {
+                printf("deleting an goal xbin=%d  ybin=%d\n", xbin, ybin);
+                fflush(stdout);
+                roger->world_map.occupancy_map[ybin][xbin] = FREESPACE;
+            }
+            else if (roger->world_map.occupancy_map[ybin][xbin] == FREESPACE) {
+                printf("inserting an goal xbin=%d  ybin=%d\n", xbin, ybin);
+                fflush(stdout);
+                roger->world_map.occupancy_map[ybin][xbin] = GOAL;
+                roger->world_map.potential_map[ybin][xbin] = 0.0;
+            }
+        }
+        //update harmonic map
+        //sor(roger);
+    }
+
+}
+
 //use cartesian space input from mouse including mouse button info
 project5_cartesian_input(roger, x, y, button)
 Robot* roger;
@@ -549,7 +599,7 @@ int button;		//mouse button
 	printf("Project 5 input - x: %4.3f, y: %4.3f - button: %d\n", x, y, button);
     
 }
- 
+
 // this procedure can be used to prompt for and read user customized input values
 project5_enter_params()
 {
