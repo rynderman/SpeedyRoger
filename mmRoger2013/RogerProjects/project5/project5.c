@@ -492,8 +492,16 @@ Robot* roger;
     // Compute Headings
     while ((mag > THRESHOLD) && (roger->world_map.occupancy_map[ybin][xbin] != GOAL)) {
         
+        
+        // USE cell_distance to break the loop!
+        
+        // 3.5, 0.0
+        int gybin = (int)((MAX_Y-0.0)/YDELTA);
+        int gxbin = (int)((3.5-MIN_X)/XDELTA);
+        
+        
         // set heading
-        headings[index] = atan2f(grad[1], grad[0]);
+        headings[index] = fabs(atan2f(grad[1], grad[0]));
         //printf("Heading %f\n", headings[index]);
 
         
@@ -513,10 +521,17 @@ Robot* roger;
         
         // get the gradient
         mag = compute_gradient(x, y, roger, grad);
+        
+        if (cell_distance(xbin, ybin, gxbin, gybin) <= 4) {
+            //printf("GOAL!!!!!!!\n\n");
+            break;
+        }
+        
     }
+    printf("\nEND\n\n");
 
     
-    if ((mag > THRESHOLD) && (roger->world_map.occupancy_map[ybin][xbin] == GOAL)) {
+    if ((mag > THRESHOLD)) {
         // Compute change in headings
         double change[index];
         int i=0;
@@ -524,10 +539,9 @@ Robot* roger;
         for (i = 1; i < index; i++) {
             change[i] = fabs(headings[i] - headings[i-1]);
             if (change[i] > 1.0f) {
-                //printf("Change: %f\n", change[i]);
                 change[i] = 0.0f;
             }
-            //printf("Change: %f\n", change[i]);
+            printf("Change: %f\n", change[i]);
         }
         // Compute the Max allowed velocity
         double velocity[index];
@@ -550,11 +564,11 @@ Robot* roger;
         //printf("Current velocity%f\n", velocity[0]);
         // Set the ending velocity
         velocity[index-1] = 0.0f;
-        //velocity[index-2] = 0.0f;
+        velocity[index-2] = 0.0f;
         
         // Smooth the velocities
         smooth(velocity, index, MAX_A);
-        
+        printf("INDEX %d", index);
         //printf("Next velocity%f\n", velocity[1]);
         /*
         i = 0;
@@ -566,13 +580,17 @@ Robot* roger;
         //printf("Go %f m/s\n", velocity[1], index);
         
           if(velocity[0] < velocity[1]){
-              //printf("accel\n");
-    	   		commandVel = MAX_A*10;
+              printf("accel\n");
+    	   		commandVel = MAX_A*50;
     
   		  }else{
-              //printf("deccel\n");
-    			commandVel = -MAX_A*10;
+              printf("deccel\n");
+    			commandVel = -MAX_A*50;
    		 }
+        if(index == 1){
+            printf("deccel\n");
+            commandVel = -MAX_A*50;
+        }
     }
 }
 
