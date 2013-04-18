@@ -429,7 +429,7 @@ Robot *roger;
 		}
 	}
 }
-#define STEP 0.1 // STEP in meters along path
+#define STEP 0.01 // STEP in meters along path
 
 //#define GOAL_X 20.0 // meters
 //#define GOAL_Y 20.0 //sin(GOAL_X) // meters
@@ -439,17 +439,17 @@ Robot *roger;
 
 // Max curve is the sharpest turn you can do and still have longitudinal velocity
 //const double MAX_CURVE = 0.08727f; // radians, 5 degrees
-const double MAX_CURVE = 3.14159; // radians, 5 degrees
+const double MAX_CURVE = 3.14159/4; // radians, 5 degrees
 
 // Min curve is the sharpest turn you can do at max velocity
 //const double MIN_CURVE = 0.01745f; // radians, 1 degree
 const double MIN_CURVE = 0.0; // radians, 1 degree
 
 // Some selected max v
-const double MAX_V = 10.0f; // meters/second
+const double MAX_V = 50.0f; // meters/second
 
 // Best safe performance for motors
-const double MAX_A = 0.33f; // m/s^2
+const double MAX_A = 0.1f; // m/s^2
 
 // Our awesome smoothing algorithm
 void smooth(double *vel_g_cu, int size, double a){
@@ -464,8 +464,7 @@ void smooth(double *vel_g_cu, int size, double a){
     }
 }
 
-#define SIZE 200
-#define A 10.0
+#define SIZE 10000
 #define ROBOT_MASS 1.0
 // Our awesome function. Needs to take into account 1/r^2 relationship with velocity
 control_velocity(roger)
@@ -494,7 +493,9 @@ Robot* roger;
     while ((mag > THRESHOLD) && (roger->world_map.occupancy_map[ybin][xbin] != GOAL)) {
         
         // set heading
-        headings[index] = atan2(grad[0], grad[1]);
+        headings[index] = atan2f(grad[1], grad[0]);
+        //printf("Heading %f\n", headings[index]);
+
         
         // go along the path
         x -= STEP*grad[0];
@@ -506,55 +507,73 @@ Robot* roger;
         
         index++;
         if (index >= SIZE) {
-            printf("MAKE SIZE BIGGER");
+            //printf("MAKE SIZE BIGGER %d \n", index);
             break;
         }
         
         // get the gradient
         mag = compute_gradient(x, y, roger, grad);
     }
+
     
-    if (mag > THRESHOLD) {
+    if ((mag > THRESHOLD) && (roger->world_map.occupancy_map[ybin][xbin] == GOAL)) {
         // Compute change in headings
         double change[index];
         int i=0;
-        for (i = 0; i < index - 1; i++) {
-            change[i] = fabs(headings[i+1] - headings[i]);
+        change[0] = 0.0f;
+        for (i = 1; i < index; i++) {
+            change[i] = fabs(headings[i] - headings[i-1]);
+            if (change[i] > 1.0f) {
+                //printf("Change: %f\n", change[i]);
+                change[i] = 0.0f;
+            }
+            //printf("Change: %f\n", change[i]);
         }
         // Compute the Max allowed velocity
         double velocity[index];
         for (i = 0; i < index; i++) {
+            /*
             if (change[i] < MIN_CURVE) {
                 velocity[i] = MAX_V;
             }else if(change[i] > MAX_CURVE){
+                //printf("Curve too much!\n");
                 velocity[i] = 0.0f;
             }else{
+             */
                 // Linear increase should be the square of change
-                velocity[i] = MAX_V*(change[i]/MAX_CURVE);
-            }
+                velocity[i] = MAX_V*((3.1415/4)-change[i]) / (3.1415/4);
+            //}
         }
         // Set the current longitudinal velocity
         velocity[0] = sqrt((roger->base_velocity[X]*roger->base_velocity[X])+(roger->base_velocity[Y]*roger->base_velocity[Y]));
+        
+        //printf("Current velocity%f\n", velocity[0]);
         // Set the ending velocity
         velocity[index-1] = 0.0f;
+        //velocity[index-2] = 0.0f;
         
         // Smooth the velocities
         smooth(velocity, index, MAX_A);
         
+        //printf("Next velocity%f\n", velocity[1]);
+        /*
+        i = 0;
+        for (i = 0; i < index; i++) {
+            printf("smooth %f \n", velocity[i], index);
+        }
+        */
         // set the velocity to velocity[0];
-        printf("Go %f m/s\n", velocity[1], index);
+        //printf("Go %f m/s\n", velocity[1], index);
         
           if(velocity[0] < velocity[1]){
-    	   		commandVel = ROBOT_MASS*A;
+              //printf("accel\n");
+    	   		commandVel = MAX_A*10;
     
   		  }else{
-    			commandVel = -ROBOT_MASS*A;
+              //printf("deccel\n");
+    			commandVel = -MAX_A*10;
    		 }
     }
-    
-  
-    
-    
 }
 
 read_map(roger)

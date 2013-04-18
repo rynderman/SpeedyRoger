@@ -68,7 +68,6 @@ double time;
    // Fx = PDBase_translate(roger,time);
     Mz = PDBase_rotate(roger,time);
     Fx = commandVel;
-    printf("%f \n" ,Fx);
     // integrated wheel torque control
     roger->wheel_torque[LEFT] = baseJT[0][0]*Fx + baseJT[0][1]*Mz;
     roger->wheel_torque[RIGHT] = baseJT[1][0]*Fx + baseJT[1][1]*Mz;
