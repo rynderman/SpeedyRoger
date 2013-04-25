@@ -429,7 +429,7 @@ Robot *roger;
 		}
 	}
 }
-#define STEP 0.01 // STEP in meters along path
+#define STEP 0.001 // STEP in meters along path
 
 //#define GOAL_X 20.0 // meters
 //#define GOAL_Y 20.0 //sin(GOAL_X) // meters
@@ -446,10 +446,10 @@ const double MAX_CURVE = 3.14159/4; // radians, 5 degrees
 const double MIN_CURVE = 0.0; // radians, 1 degree
 
 // Some selected max v
-const double MAX_V = 50.0f; // meters/second
+const double MAX_V = 30.0f; // meters/second
 
 // Best safe performance for motors
-const double MAX_A = 0.1f; // m/s^2
+const double MAX_A = 0.1f; // not in m/s^2
 
 // Our awesome smoothing algorithm
 void smooth(double *vel_g_cu, int size, double a){
@@ -458,7 +458,7 @@ void smooth(double *vel_g_cu, int size, double a){
         if (vel_g_cu[i]+a < vel_g_cu[i+1])
             vel_g_cu[i+1] = vel_g_cu[i]+a;
     }
-    for (i = size-1; i > 0; i--){
+    for (i = size-1; i > 1; i--){
         if (vel_g_cu[i-1] > vel_g_cu[i]+a)
             vel_g_cu[i-1] = vel_g_cu[i]+a;
     }
@@ -474,7 +474,7 @@ Robot* roger;
 	double compute_gradient(), mag, grad[2], x, y;
 	double headings[SIZE];
     
-    int index = 0;
+    int numOfPointsInPath = 0;
     
     // Find stat position
     sor(roger);
@@ -489,21 +489,14 @@ Robot* roger;
     
     mag = compute_gradient(x, y, roger, grad);
     
+    int gybin = (int)((MAX_Y-0.0)/YDELTA);
+    int gxbin = (int)((3.5-MIN_X)/XDELTA);
+    
     // Compute Headings
     while ((mag > THRESHOLD) && (roger->world_map.occupancy_map[ybin][xbin] != GOAL)) {
         
-        
-        // USE cell_distance to break the loop!
-        
-        // 3.5, 0.0
-        int gybin = (int)((MAX_Y-0.0)/YDELTA);
-        int gxbin = (int)((3.5-MIN_X)/XDELTA);
-        
-        
         // set heading
-        headings[index] = fabs(atan2f(grad[1], grad[0]));
-        //printf("Heading %f\n", headings[index]);
-
+        headings[numOfPointsInPath] = fabs(atan2f(grad[1], grad[0]));
         
         // go along the path
         x -= STEP*grad[0];
@@ -513,83 +506,67 @@ Robot* roger;
         ybin = (int)((MAX_Y-y)/YDELTA);
         xbin = (int)((x-MIN_X)/XDELTA);
         
-        index++;
-        if (index >= SIZE) {
-            //printf("MAKE SIZE BIGGER %d \n", index);
+        numOfPointsInPath++;
+        if (numOfPointsInPath >= SIZE) {
+            printf("MAKE SIZE BIGGER %d \n", numOfPointsInPath);
             break;
         }
-        
         // get the gradient
         mag = compute_gradient(x, y, roger, grad);
-        
-        if (cell_distance(xbin, ybin, gxbin, gybin) <= 4) {
-            //printf("GOAL!!!!!!!\n\n");
+
+        if (cell_distance(xbin, ybin, gxbin, gybin) <= 1) {
             break;
         }
-        
     }
-    printf("\nEND\n\n");
-
+    
     
     if ((mag > THRESHOLD)) {
         // Compute change in headings
-        double change[index];
+        double change[numOfPointsInPath];
         int i=0;
         change[0] = 0.0f;
-        for (i = 1; i < index; i++) {
+        for (i = 1; i < numOfPointsInPath; i++) {
             change[i] = fabs(headings[i] - headings[i-1]);
-            if (change[i] > 1.0f) {
-                change[i] = 0.0f;
-            }
-            printf("Change: %f\n", change[i]);
         }
         // Compute the Max allowed velocity
-        double velocity[index];
-        for (i = 0; i < index; i++) {
-            /*
-            if (change[i] < MIN_CURVE) {
-                velocity[i] = MAX_V;
-            }else if(change[i] > MAX_CURVE){
-                //printf("Curve too much!\n");
-                velocity[i] = 0.0f;
-            }else{
-             */
-                // Linear increase should be the square of change
-                velocity[i] = MAX_V*((3.1415/4)-change[i]) / (3.1415/4);
-            //}
-        }
+        double velocity[numOfPointsInPath];
+         for (i = 0; i < numOfPointsInPath; i++) {
+         // Linear increase should be the square of change
+         velocity[i] = MAX_V*((3.1415/4)-change[i]) / (3.1415/4);
+         }
+
         // Set the current longitudinal velocity
-        velocity[0] = sqrt((roger->base_velocity[X]*roger->base_velocity[X])+(roger->base_velocity[Y]*roger->base_velocity[Y]));
+        velocity[0] = roger->base_velocity[X];
         
-        //printf("Current velocity%f\n", velocity[0]);
-        // Set the ending velocity
-        velocity[index-1] = 0.0f;
-        velocity[index-2] = 0.0f;
+        // set final velocity to 0
+        if (numOfPointsInPath > 1) {
+            velocity[numOfPointsInPath-1] = 0.0f;
+        }
         
         // Smooth the velocities
-        smooth(velocity, index, MAX_A);
-        printf("INDEX %d", index);
-        //printf("Next velocity%f\n", velocity[1]);
-        /*
-        i = 0;
-        for (i = 0; i < index; i++) {
-            printf("smooth %f \n", velocity[i], index);
-        }
-        */
-        // set the velocity to velocity[0];
-        //printf("Go %f m/s\n", velocity[1], index);
+        smooth(velocity, numOfPointsInPath, MAX_A);
         
-          if(velocity[0] < velocity[1]){
-              printf("accel\n");
-    	   		commandVel = MAX_A*50;
-    
-  		  }else{
-              printf("deccel\n");
-    			commandVel = -MAX_A*50;
-   		 }
-        if(index == 1){
-            printf("deccel\n");
-            commandVel = -MAX_A*50;
+        /*
+         printf("START\n");
+         for (i = 0; i < numOfPointsInPath; i++) {
+         printf("velocties %f\n", velocity[i]);
+         }
+         printf("END\n");
+         */
+        
+        //printf("current v %f\n", velocity[0]);
+        if (numOfPointsInPath > 0) {
+            //printf("command v %f\n\n", velocity[1]);
+            if( velocity[0] < velocity[1]){
+                printf("accel\n");
+                commandVel = 300;
+            } else if(velocity[0] > velocity[1]){
+                printf("deccel\n");
+                commandVel = -300;
+            }else{}
+        }else{
+            printf("don't move\n");
+            commandVel = -roger->base_velocity[X]*100;
         }
     }
 }
