@@ -431,12 +431,6 @@ Robot *roger;
 }
 #define STEP 0.001 // STEP in meters along path
 
-//#define GOAL_X 20.0 // meters
-//#define GOAL_Y 20.0 //sin(GOAL_X) // meters
-
-// Represents the starting velocity at which this algorithm is run
-//const double CURRENT_V = 0.0;
-
 // Max curve is the sharpest turn you can do and still have longitudinal velocity
 //const double MAX_CURVE = 0.08727f; // radians, 5 degrees
 const double MAX_CURVE = 3.14159/4; // radians, 5 degrees
@@ -476,23 +470,25 @@ Robot* roger;
     
     int numOfPointsInPath = 0;
     
-    // Find stat position
+    // create gradients towards goal
     sor(roger);
-	
-	// initialize auxilliary structure for controlling the
-	// density of streamlines rendered
+
+    // get position
     x = roger->base_position[X];
     y = roger->base_position[Y];
     
+    // find which bin we're in
     ybin = (int)((MAX_Y - y)/YDELTA);
     xbin = (int)((x - MIN_X)/XDELTA);
     
+    // get the gradient at that point
     mag = compute_gradient(x, y, roger, grad);
     
+    // find the bins with the goal
     int gybin = (int)((MAX_Y-0.0)/YDELTA);
     int gxbin = (int)((3.5-MIN_X)/XDELTA);
     
-    // Compute Headings
+    // Compute headings by following gradients until you reach the goal
     while ((mag > THRESHOLD) && (roger->world_map.occupancy_map[ybin][xbin] != GOAL)) {
         
         // set heading
@@ -506,6 +502,7 @@ Robot* roger;
         ybin = (int)((MAX_Y-y)/YDELTA);
         xbin = (int)((x-MIN_X)/XDELTA);
         
+        // go to next point in path
         numOfPointsInPath++;
         if (numOfPointsInPath >= SIZE) {
             printf("MAKE SIZE BIGGER %d \n", numOfPointsInPath);
@@ -514,12 +511,13 @@ Robot* roger;
         // get the gradient
         mag = compute_gradient(x, y, roger, grad);
 
-        if (cell_distance(xbin, ybin, gxbin, gybin) <= 1) {
+        // At goal
+        if (cell_distance(xbin, ybin, gxbin, gybin) < 1) {
             break;
         }
     }
     
-    
+    // Compute velocities based on headings
     if ((mag > THRESHOLD)) {
         // Compute change in headings
         double change[numOfPointsInPath];
@@ -546,6 +544,7 @@ Robot* roger;
         // Smooth the velocities
         smooth(velocity, numOfPointsInPath, MAX_A);
         
+        // Print out velocities
         /*
          printf("START\n");
          for (i = 0; i < numOfPointsInPath; i++) {
@@ -554,9 +553,8 @@ Robot* roger;
          printf("END\n");
          */
         
-        //printf("current v %f\n", velocity[0]);
+        // If there is a path
         if (numOfPointsInPath > 0) {
-            //printf("command v %f\n\n", velocity[1]);
             if( velocity[0] < velocity[1]){
                 printf("accel\n");
                 commandVel = 300;
@@ -564,6 +562,7 @@ Robot* roger;
                 printf("deccel\n");
                 commandVel = -300;
             }else{}
+        // Stand still
         }else{
             printf("don't move\n");
             commandVel = -roger->base_velocity[X]*100;
