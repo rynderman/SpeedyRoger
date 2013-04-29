@@ -67,10 +67,13 @@ double time;
     
    // Fx = PDBase_translate(roger,time);
     Mz = PDBase_rotate(roger,time);
+    //Fx = PDBase_translate(roger, time);
+    
     Fx = commandVel;
+    
     // integrated wheel torque control
-    roger->wheel_torque[LEFT] = baseJT[0][0]*Fx + baseJT[0][1]*Mz;
-    roger->wheel_torque[RIGHT] = baseJT[1][0]*Fx + baseJT[1][1]*Mz;
+    roger->wheel_torque[LEFT] = ( baseJT[0][0]*Fx + baseJT[0][1]*Mz );
+    roger->wheel_torque[RIGHT] = ( baseJT[1][0]*Fx + baseJT[1][1]*Mz );
 }
 
 // gains for base translational controller
@@ -95,7 +98,7 @@ double time;
     roger->base_velocity[Y]*sin(roger->base_position[THETA]);
     
     Fx = kp_base_trans * trans_error - kd_base_trans * trans_vel;
-    
+        
     return(Fx);
 }
 

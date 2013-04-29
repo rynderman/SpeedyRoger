@@ -30,12 +30,12 @@ Robot* roger;
     
 	sor(roger);
     
-    //state = primitive4(roger);
-    
-    
     
     // tells the velocity controller what velocity to set, calls sor(roger)
     control_velocity(roger);
+    
+    //state = primitive4(roger);
+
 }
 
 
@@ -233,7 +233,7 @@ Robot * roger;
 //--------------Primitive4 - follow gradient of harmonic function-------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-#define CONTROL_STEP 2.0
+#define CONTROL_STEP 2
 
 /*
  / Harmonic function path planner / follower. It will follow a gradient in the potential map
@@ -351,7 +351,7 @@ project5_init(roger)
 Robot* roger;
 {
 	//insert the walls
-    //	draw_room(roger);
+    	draw_room(roger);
 	
 	//dilate the obstacles
 	dilate_obstacles(roger);
