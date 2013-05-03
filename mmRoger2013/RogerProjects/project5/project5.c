@@ -43,33 +43,33 @@ Robot* roger;
  / Given two grid coordinates (indeces) in the occupancy grid, calculate and return the distance between the closest points of both grid cells.
  / The size of each cell is XDELTA x YDELTA.
  */
-double cell_distance(xbin1, ybin1, xbin2, ybin2)
-int xbin1, ybin1, xbin2, ybin2;
-{
-	double dist[2] = {0.0, 0.0};
+	 double cell_distance(xbin1, ybin1, xbin2, ybin2)
+	 int xbin1, ybin1, xbin2, ybin2;
+	 {
+	 	double dist[2] = {0.0, 0.0};
     
-	//calculate distance in x direction
-    dist[X] = xbin2 - xbin1;
+	 	//calculate distance in x direction
+	     dist[X] = xbin2 - xbin1;
     
-    if (fabs(dist[X]) <= 1) {
-        dist[X] = 0;
-    }
-    else{
-        dist[X] -= 1*SGN(dist[X]);
-        dist[X] = dist[X]*XDELTA;
-    }
-	//calculate distance in y direction
-    dist[Y] = ybin2 - ybin1;
+	     if (fabs(dist[X]) <= 1) {
+	         dist[X] = 0;
+	     }
+	     else{
+	         dist[X] -= 1*SGN(dist[X]);
+	         dist[X] = dist[X]*XDELTA;
+	     }
+	 	//calculate distance in y direction
+	     dist[Y] = ybin2 - ybin1;
     
-    if (fabs(dist[Y]) <= 1) {
-        dist[Y] = 0;
-    }
-    else{
-        dist[Y] -= 1*SGN(dist[Y]);
-        dist[Y] = dist[Y]*YDELTA;
-    }
-    return sqrt( SQR(dist[X]) + SQR(dist[Y]) );
-}
+	     if (fabs(dist[Y]) <= 1) {
+	         dist[Y] = 0;
+	     }
+	     else{
+	         dist[Y] -= 1*SGN(dist[Y]);
+	         dist[Y] = dist[Y]*YDELTA;
+	     }
+	     return sqrt( SQR(dist[X]) + SQR(dist[Y]) );
+	 }
 
 
 #define ROBOT_DILATE_RADIUS 0.2
@@ -165,69 +165,69 @@ Robot* roger;
  / DO NOT ALTER
  / Run SOR numerical relaxation of the harmonic map
  */
-sor(roger)
-Robot * roger;
-{
-	int i, j, sor_count=0, converged = FALSE;
-	double sor_once();
+	 sor(roger)
+	 Robot * roger;
+	 {
+	 	int i, j, sor_count=0, converged = FALSE;
+	 	double sor_once();
     
-	while (!converged && (sor_count < 10000)) {
-		++sor_count;
-		if (sor_once(roger) < THRESHOLD)
-			converged = TRUE;
-	}
-    // printf("Sor called\n");
+	 	while (!converged && (sor_count < 10000)) {
+	 		++sor_count;
+	 		if (sor_once(roger) < THRESHOLD)
+	 			converged = TRUE;
+	 	}
+	     // printf("Sor called\n");
     
-	if (sor_count > 1)
-		printf("completed harmonic function --- %d iterations\n", sor_count);
-}
-
+	 	if (sor_count > 1)
+	 		printf("completed harmonic function --- %d iterations\n", sor_count);
+	 }
 
 /*
  / one complete backup, only dirichlet boundary conditions
  */
-double sor_once(roger)
-Robot * roger;
-{
-	int i, j, ipos, ineg, jpos, jneg;
-	double residual, max, front, back, up, down;
+ double sor_once(roger)
+ Robot * roger;
+ {
+ 	int i, j, ipos, ineg, jpos, jneg;
+ 	double residual, max, front, back, up, down;
     
-	max = 0.0;
+ 	max = 0.0;
     
-    // iterate over entire map once
-    // return the  maximum change in the potential value over the entire
-    // occupancy map as a means of determining convergence
-    //
-    // 0.0 <= roger->world_map.potential_map[ybin][xbin] <= 1.0
+     // iterate over entire map once
+     // return the  maximum change in the potential value over the entire
+     // occupancy map as a means of determining convergence
+     //
+     // 0.0 <= roger->world_map.potential_map[ybin][xbin] <= 1.0
     
     
-    for (i = 0; i < NYBINS; ++i) {   // rows y
+     for (i = 0; i < NYBINS; ++i) {   // rows y
         
-		for (j = 0; j < NXBINS; ++j) {   // col x
+ 		for (j = 0; j < NXBINS; ++j) {   // col x
             
-            if (roger->world_map.occupancy_map[i][j] == FREESPACE) {
+             if (roger->world_map.occupancy_map[i][j] == FREESPACE) {
                 
-                ipos = i+1;
-                ineg = i-1;
-                jpos = j+1;
-                jneg = j-1;
+                 ipos = i+1;
+                 ineg = i-1;
+                 jpos = j+1;
+                 jneg = j-1;
                 
-                front = roger->world_map.potential_map[i][jpos];
-                back = roger->world_map.potential_map[i][jneg];
-                up = roger->world_map.potential_map[ipos][j];
-                down = roger->world_map.potential_map[ineg][j];
+                 front = roger->world_map.potential_map[i][jpos];
+                 back = roger->world_map.potential_map[i][jneg];
+                 up = roger->world_map.potential_map[ipos][j];
+                 down = roger->world_map.potential_map[ineg][j];
                 
-                residual = (0.46/4)*(front + back + up + down - 4*roger->world_map.potential_map[i][j]);
+                 residual = (0.46/4)*(front + back + up + down - 4*roger->world_map.potential_map[i][j]);
                 
-                if (residual > max) {
-                    max = residual;
-                }
-                roger->world_map.potential_map[i][j] += residual;
-            }
-        }
-    }
-	return max;
-}
+                 if (residual > max) {
+                     max = residual;
+                 }
+                 roger->world_map.potential_map[i][j] += residual;
+             }
+         }
+     }
+ 	return max;
+ }
+
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 //--------------Primitive4 - follow gradient of harmonic function-------------------------------------------------------------------------------
@@ -351,7 +351,7 @@ project5_init(roger)
 Robot* roger;
 {
 	//insert the walls
-    	draw_room(roger);
+	draw_room(roger);
 	
 	//dilate the obstacles
 	dilate_obstacles(roger);
@@ -429,7 +429,7 @@ Robot *roger;
 		}
 	}
 }
-#define STEP 0.001 // STEP in meters along path
+#define VSTEP 0.1 // STEP in meters along path
 
 // Max curve is the sharpest turn you can do and still have longitudinal velocity
 //const double MAX_CURVE = 0.08727f; // radians, 5 degrees
@@ -440,25 +440,31 @@ const double MAX_CURVE = 3.14159/4; // radians, 5 degrees
 const double MIN_CURVE = 0.0; // radians, 1 degree
 
 // Some selected max v
-const double MAX_V = 30.0f; // meters/second
+const double MAX_V = 12.0f; // meters/second
 
 // Best safe performance for motors
-const double MAX_A = 0.1f; // not in m/s^2
+const double MAX_A = 55.55; // not in m/s^2
 
 // Our awesome smoothing algorithm
 void smooth(double *vel_g_cu, int size, double a){
     int i;
     for (i = 0; i < size-1; i++){
-        if (vel_g_cu[i]+a < vel_g_cu[i+1])
+        if (vel_g_cu[i]+a < vel_g_cu[i+1]){
             vel_g_cu[i+1] = vel_g_cu[i]+a;
+		}else{
+			//vel_g_cu[i+1] = vel_g_cu[i];
+		}
     }
     for (i = size-1; i > 1; i--){
-        if (vel_g_cu[i-1] > vel_g_cu[i]+a)
+        if (vel_g_cu[i-1] > vel_g_cu[i]+a){
             vel_g_cu[i-1] = vel_g_cu[i]+a;
+		}else{
+			//vel_g_cu[i-1] = vel_g_cu[i];
+		}
     }
 }
 
-#define SIZE 10000
+#define SIZE 100000
 #define ROBOT_MASS 1.0
 // Our awesome function. Needs to take into account 1/r^2 relationship with velocity
 control_velocity(roger)
@@ -495,8 +501,8 @@ Robot* roger;
         headings[numOfPointsInPath] = fabs(atan2f(grad[1], grad[0]));
         
         // go along the path
-        x -= STEP*grad[0];
-        y -= STEP*grad[1];
+        x -= VSTEP*grad[0];
+        y -= VSTEP*grad[1];
         
         // find the bin we're in
         ybin = (int)((MAX_Y-y)/YDELTA);
@@ -543,7 +549,21 @@ Robot* roger;
         
         // Smooth the velocities
         smooth(velocity, numOfPointsInPath, MAX_A);
-        
+ 
+		
+	    // get position
+	    x = roger->base_position[X];
+	    y = roger->base_position[Y];
+    
+	    // find which bin we're in
+	    ybin = (int)((MAX_Y - y)/YDELTA);
+	    xbin = (int)((x - MIN_X)/XDELTA);
+    
+	    // get the gradient at that point
+	    mag = compute_gradient(x, y, roger, grad);
+		
+		roger->base_setpoint[THETA] = atan2(-grad[1] , -grad[0]) ;
+		
         // Print out velocities
         /*
          printf("START\n");
@@ -556,16 +576,16 @@ Robot* roger;
         // If there is a path
         if (numOfPointsInPath > 0) {
             if( velocity[0] < velocity[1]){
-                printf("accel\n");
-                commandVel = 300;
+              //  printf("accel\n");
+                commandVel = 55.55;
             } else if(velocity[0] > velocity[1]){
-                printf("deccel\n");
-                commandVel = -300;
+               // printf("deccel\n");
+                commandVel = -55.55;
             }else{}
         // Stand still
         }else{
-            printf("don't move\n");
-            commandVel = -roger->base_velocity[X]*100;
+            //printf("don't move\n");
+		     commandVel = -roger->base_velocity[X]*100;
         }
     }
 }
@@ -615,7 +635,7 @@ project5_enter_params()
     
 }
 
-//#define STEP         0.01
+#define STEP         0.01
 
 /* do not alter */
 //function called when the 'visualize' button on the gui is pressed

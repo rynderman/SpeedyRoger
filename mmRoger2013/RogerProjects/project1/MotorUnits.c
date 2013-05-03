@@ -71,6 +71,10 @@ double time;
     
     Fx = commandVel;
     
+	float velocity = roger->base_velocity[X];
+	printf("%f %f \n" , velocity, time);
+	
+	
     // integrated wheel torque control
     roger->wheel_torque[LEFT] = ( baseJT[0][0]*Fx + baseJT[0][1]*Mz );
     roger->wheel_torque[RIGHT] = ( baseJT[1][0]*Fx + baseJT[1][1]*Mz );
