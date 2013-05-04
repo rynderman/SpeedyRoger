@@ -42,7 +42,7 @@ Robot* roger;
     // tells the velocity controller what velocity to set, calls sor(roger)
     control_velocity(roger);
     
-    //state = primitive4(roger);
+	state = primitive4(roger);
 
 }
 
@@ -93,7 +93,7 @@ Robot* roger;
 	int num_obs = 0;
 	int num_dilate = 0;
     
-	printf("Dilating obstacles...\n");
+	//printf("Dilating obstacles...\n");
     
 	//remove previous dilated obstacles
 	for (i = 0; i < NYBINS; ++i) {   // rows
@@ -136,7 +136,7 @@ Robot* roger;
             }
 		}
 	}
-    printf("Total: %d obstacles, %d freespaces marked as dilated obstacles.\n", num_obs, num_dilate);
+    //printf("Total: %d obstacles, %d freespaces marked as dilated obstacles.\n", num_obs, num_dilate);
 }
 
 
@@ -161,7 +161,7 @@ Robot* roger;
 		ybin = (int)((MAX_Y - search_locations[i][Y])/YDELTA);
 		xbin = (int)((search_locations[i][X] - MIN_X)/XDELTA);
         
-		printf("%d : %4.3f, %4.3f -> %d, %d \n", i, search_locations[i][X], search_locations[i][Y], xbin, ybin );
+		//printf("%d : %4.3f, %4.3f -> %d, %d \n", i, search_locations[i][X], search_locations[i][Y], xbin, ybin );
 		roger->world_map.occupancy_map[ybin][xbin] = GOAL;
 		roger->world_map.potential_map[ybin][xbin] = 0.0;
 		roger->world_map.color_map[ybin][xbin] = GREEN;
@@ -186,8 +186,8 @@ Robot* roger;
  	}
      // printf("Sor called\n");
     
- 	if (sor_count > 1)
- 		printf("completed harmonic function --- %d iterations\n", sor_count);
+ 	//if (sor_count > 1)
+ 		//printf("completed harmonic function --- %d iterations\n", sor_count);
  }
 
 /*
@@ -241,7 +241,7 @@ Robot* roger;
 //--------------Primitive4 - follow gradient of harmonic function-------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-#define CONTROL_STEP 2
+#define CONTROL_STEP 3.5
 
 /*
  / Harmonic function path planner / follower. It will follow a gradient in the potential map
@@ -361,7 +361,7 @@ Robot* roger;
 	
 	
 	//insert the walls
-	//draw_room(roger);
+	draw_room(roger);
 	
 	//dilate the obstacles
 	dilate_obstacles(roger);
@@ -422,7 +422,7 @@ Robot* roger;
 	  //  printf("MAKE SIZE BIGGER %d \n", pathLen);
 		
         if (pathLen >= SIZE) {
-            printf("MAKE SIZE BIGGER %d \n", pathLen);
+            //printf("MAKE SIZE BIGGER %d \n", pathLen);
             break;
         }
         // get the gradient
@@ -523,7 +523,7 @@ const double MAX_V = 8.0f; // meters/second
 //8 , 11.11 , 10
 
 // Best safe performance for motors
-const double MAX_A = 11.11; // not in m/s^2
+const double MAX_A = 10; // not in m/s^2
 
 // Our awesome smoothing algorithm
 void smooth(double *vel_g_cu, int size, double a){
@@ -595,7 +595,7 @@ Robot* roger;
         // go to next point in path
         numOfPointsInPath++;
         if (numOfPointsInPath >= SIZE) {
-            printf("MAKE SIZE BIGGER %d \n", numOfPointsInPath);
+            //printf("MAKE SIZE BIGGER %d \n", numOfPointsInPath);
             break;
         }
         // get the gradient
@@ -658,7 +658,7 @@ Robot* roger;
        	 	if (cell_distance(xbin, ybin, gxbin, gybin) > 0.1f) {
         
 				find_min_error(roger,x,y);
-				printf("ERROR -> %f %i \n " , error , pathLen);
+				printf("%f\n" , error );
 			}
 		}
         
@@ -666,10 +666,10 @@ Robot* roger;
         if (numOfPointsInPath > 0) {
             if( velocity[0] < velocity[1]){
               //  printf("accel\n");
-                commandVel = 10.0;
+				 commandVel = 10;
             } else if(velocity[0] > velocity[1]){
                // printf("deccel\n");
-                commandVel = -10.0;
+                commandVel = -10;
             }else{}
         // Stand still
         }else{
@@ -727,7 +727,7 @@ Robot* roger;
     
     int x, y = 0;
     // Read in x and y
-    printf("Read in - x: %4.3f, y: %4.3f - button: %d\n", x, y, roger->button_event);
+    //printf("Read in - x: %4.3f, y: %4.3f - button: %d\n", x, y, roger->button_event);
     
     xbin = (x - MIN_X) / XDELTA;
     ybin = NYBINS - (y - MIN_Y) / YDELTA;
@@ -754,14 +754,14 @@ double y;		//y value
 int button;		//mouse button
 {
     
-	printf("Project 5 input - x: %4.3f, y: %4.3f - button: %d\n", x, y, button);
+	//printf("Project 5 input - x: %4.3f, y: %4.3f - button: %d\n", x, y, button);
     
 }
 
 // this procedure can be used to prompt for and read user customized input values
 project5_enter_params()
 {
-	printf("Project 5 enter_params called. \n");
+	//printf("Project 5 enter_params called. \n");
     
 }
 
@@ -777,7 +777,7 @@ Robot* roger;
 	double compute_gradient(), mag, grad[2], x, y;
 	//void draw_roger(), draw_object(), draw_frames(), mark_used(), draw_history();
 	
-	printf("Project 5 visualize called. \n");
+	//printf("Project 5 visualize called. \n");
     
 	// make sure it converged
 	sor(roger);

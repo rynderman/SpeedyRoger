@@ -60,22 +60,26 @@ double time;
 double baseJT[2][2] = {{(1.0/2.0), -(1.0/(2.0*R_AXLE))},
     {(1.0/2.0),  (1.0/(2.0*R_AXLE))} };
 
+float max = 0.0f;
+
 PDController_base(roger, time)
 Robot * roger;
 double time;
 {
     double Fx, Mz, PDBase_translate(), PDBase_rotate();
     
-   // Fx = PDBase_translate(roger,time);
+	 //Fx = PDBase_translate(roger,time);
     //Fx = PDBase_translate(roger, time);
 
-    Fx = commandVel;
+	 Fx = commandVel;
     
 	Mz = PDBase_rotate(roger,time);
 
 	float velocity = roger->base_velocity[X];
-	//printf("%f %f \n" , velocity, time);
-	
+	if(velocity > max){
+		//printf("%f %f \n" , velocity, time);
+	max = velocity;
+	}
 	
     // integrated wheel torque control
     roger->wheel_torque[LEFT] = ( baseJT[0][0]*Fx + baseJT[0][1]*Mz );
