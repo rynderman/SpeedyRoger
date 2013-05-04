@@ -16,6 +16,13 @@
 
 int project5_initialized = FALSE;
 double extern commandVel;
+float xlocations[1000];
+float ylocations[1000];
+float error = 0.0f;
+int pathLen =0;
+float  distTraveled = 0.0f;
+float saveX =0.0f;
+float saveY = 0.0f;
 project5_control(roger)
 Robot* roger;
 {
@@ -26,11 +33,12 @@ Robot* roger;
 	{
 		project5_init(roger);
 		project5_initialized = TRUE;
+		
 	}
     
 	sor(roger);
     
-    
+	
     // tells the velocity controller what velocity to set, calls sor(roger)
     control_velocity(roger);
     
@@ -165,22 +173,22 @@ Robot* roger;
  / DO NOT ALTER
  / Run SOR numerical relaxation of the harmonic map
  */
-	 sor(roger)
-	 Robot * roger;
-	 {
-	 	int i, j, sor_count=0, converged = FALSE;
-	 	double sor_once();
+ sor(roger)
+ Robot * roger;
+ {
+ 	int i, j, sor_count=0, converged = FALSE;
+ 	double sor_once();
     
-	 	while (!converged && (sor_count < 10000)) {
-	 		++sor_count;
-	 		if (sor_once(roger) < THRESHOLD)
-	 			converged = TRUE;
-	 	}
-	     // printf("Sor called\n");
+ 	while (!converged && (sor_count < 10000)) {
+ 		++sor_count;
+ 		if (sor_once(roger) < THRESHOLD)
+ 			converged = TRUE;
+ 	}
+     // printf("Sor called\n");
     
-	 	if (sor_count > 1)
-	 		printf("completed harmonic function --- %d iterations\n", sor_count);
-	 }
+ 	if (sor_count > 1)
+ 		printf("completed harmonic function --- %d iterations\n", sor_count);
+ }
 
 /*
  / one complete backup, only dirichlet boundary conditions
@@ -350,15 +358,85 @@ Robot* roger;
 project5_init(roger)
 Robot* roger;
 {
+	
+	
 	//insert the walls
-	draw_room(roger);
+	//draw_room(roger);
 	
 	//dilate the obstacles
 	dilate_obstacles(roger);
 	
 	//init the search locations
 	init_search_locations(roger);
+	
+	
 }
+
+#define VSTEP 0.1 // STEP in meters along path
+#define SIZE 1000000
+#define savePathStep 0.01
+save_path(roger)
+Robot* roger;
+{
+    int xbin, ybin, already_used[NXBINS][NYBINS];
+	double compute_gradient(), mag, grad[2], x, y;
+    
+    
+    // create gradients towards goal
+    sor(roger);
+
+    // get position
+    x = -3.5;
+    y = 0;
+    
+    // find which bin we're in
+    ybin = (int)((MAX_Y - y)/YDELTA);
+    xbin = (int)((x - MIN_X)/XDELTA);
+	
+	xlocations[0] = x;
+	ylocations[0] = y;
+    
+    // get the gradient at that point
+    mag = compute_gradient(x, y, roger, grad);
+    
+    // find the bins with the goal
+    int gybin = (int)((MAX_Y-0.0)/YDELTA);
+    int gxbin = (int)((3.5-MIN_X)/XDELTA);
+    
+    // Compute headings by following gradients until you reach the goal
+    while ((mag > THRESHOLD) && (roger->world_map.occupancy_map[ybin][xbin] != GOAL)) {
+                
+        // go along the path
+        x -= savePathStep*grad[0];
+        y -= savePathStep*grad[1];
+        
+		xlocations[pathLen] = x;
+		ylocations[pathLen] = y;
+		
+        // find the bin we're in
+        ybin = (int)((MAX_Y-y)/YDELTA);
+        xbin = (int)((x-MIN_X)/XDELTA);
+        
+        // go to next point in path
+        pathLen++;
+	  //  printf("MAKE SIZE BIGGER %d \n", pathLen);
+		
+        if (pathLen >= SIZE) {
+            printf("MAKE SIZE BIGGER %d \n", pathLen);
+            break;
+        }
+        // get the gradient
+        mag = compute_gradient(x, y, roger, grad);
+
+        // At goal
+        if (cell_distance(xbin, ybin, gxbin, gybin) < 1) {
+            break;
+        }
+    }
+	
+}
+
+
 
 /*
  / draws the rooms and init potential map
@@ -429,7 +507,6 @@ Robot *roger;
 		}
 	}
 }
-#define VSTEP 0.1 // STEP in meters along path
 
 // Max curve is the sharpest turn you can do and still have longitudinal velocity
 //const double MAX_CURVE = 0.08727f; // radians, 5 degrees
@@ -440,10 +517,13 @@ const double MAX_CURVE = 3.14159/4; // radians, 5 degrees
 const double MIN_CURVE = 0.0; // radians, 1 degree
 
 // Some selected max v
-const double MAX_V = 12.0f; // meters/second
+const double MAX_V = 8.0f; // meters/second
+
+//18 , 111.11  , 111.11
+//8 , 11.11 , 10
 
 // Best safe performance for motors
-const double MAX_A = 55.55; // not in m/s^2
+const double MAX_A = 11.11; // not in m/s^2
 
 // Our awesome smoothing algorithm
 void smooth(double *vel_g_cu, int size, double a){
@@ -464,7 +544,6 @@ void smooth(double *vel_g_cu, int size, double a){
     }
 }
 
-#define SIZE 100000
 #define ROBOT_MASS 1.0
 // Our awesome function. Needs to take into account 1/r^2 relationship with velocity
 control_velocity(roger)
@@ -478,7 +557,12 @@ Robot* roger;
     
     // create gradients towards goal
     sor(roger);
-
+	
+	float velocity = roger->base_velocity[X];
+	if( velocity < .001  ){
+		save_path(roger);
+	}
+		
     // get position
     x = roger->base_position[X];
     y = roger->base_position[Y];
@@ -563,24 +647,29 @@ Robot* roger;
 	    mag = compute_gradient(x, y, roger, grad);
 		
 		roger->base_setpoint[THETA] = atan2(-grad[1] , -grad[0]) ;
-		
-        // Print out velocities
-        /*
-         printf("START\n");
-         for (i = 0; i < numOfPointsInPath; i++) {
-         printf("velocties %f\n", velocity[i]);
-         }
-         printf("END\n");
-         */
+
+
+		distTraveled = sqrt( (x-saveX)*(x-saveX) + (y-saveY)*(y-saveY));
+
+		if(distTraveled > VSTEP){
+			saveX = x;
+			saveY = y;
+
+       	 	if (cell_distance(xbin, ybin, gxbin, gybin) > 0.1f) {
+        
+				find_min_error(roger,x,y);
+				printf("ERROR -> %f \n " , error);
+			}
+		}
         
         // If there is a path
         if (numOfPointsInPath > 0) {
             if( velocity[0] < velocity[1]){
               //  printf("accel\n");
-                commandVel = 55.55;
+                commandVel = 10;
             } else if(velocity[0] > velocity[1]){
                // printf("deccel\n");
-                commandVel = -55.55;
+                commandVel = -10;
             }else{}
         // Stand still
         }else{
@@ -589,6 +678,46 @@ Robot* roger;
         }
     }
 }
+
+
+find_min_error(roger , x , y)
+Robot* roger;
+float x;
+float y;
+{
+	
+	int ct = 0;
+	float currX;
+	float currY;
+	float currX1;
+	float currY1;
+	float d;
+	float d1;
+	float minE = 1000000.0f;
+    int ybin = (int)((MAX_Y-y)/YDELTA);
+    int xbin = (int)((x-MIN_X)/XDELTA);
+    int currXBin;
+    int currYBin ;
+	
+	for(ct  = 0 ; ct < pathLen-1 ; ct++){
+		currX = xlocations[ct];
+		currY = ylocations[ct];
+		
+	    int currXBin = (int)((MAX_Y-currY)/YDELTA);
+	    int currYBin = (int)((currY-MIN_X)/XDELTA);
+		
+		
+		d =  cell_distance(xbin, ybin, currXBin, currYBin);
+		if(d < minE){
+			minE = d;
+		}		
+	}
+
+	if(pathLen != 0){
+		error += (minE*VSTEP);
+	}
+}
+
 
 read_map(roger)
 Robot* roger;
