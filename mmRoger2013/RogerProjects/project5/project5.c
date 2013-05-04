@@ -559,9 +559,9 @@ Robot* roger;
     sor(roger);
 	
 	float velocity = roger->base_velocity[X];
-	if( velocity < .001  ){
+	//if( velocity < .001  ){
 		save_path(roger);
-	}
+		//}
 		
     // get position
     x = roger->base_position[X];
@@ -658,7 +658,7 @@ Robot* roger;
        	 	if (cell_distance(xbin, ybin, gxbin, gybin) > 0.1f) {
         
 				find_min_error(roger,x,y);
-				printf("ERROR -> %f \n " , error);
+				printf("ERROR -> %f %i \n " , error , pathLen);
 			}
 		}
         
@@ -666,10 +666,10 @@ Robot* roger;
         if (numOfPointsInPath > 0) {
             if( velocity[0] < velocity[1]){
               //  printf("accel\n");
-                commandVel = 10;
+                commandVel = 10.0;
             } else if(velocity[0] > velocity[1]){
                // printf("deccel\n");
-                commandVel = -10;
+                commandVel = -10.0;
             }else{}
         // Stand still
         }else{
@@ -707,7 +707,8 @@ float y;
 	    int currYBin = (int)((currY-MIN_X)/XDELTA);
 		
 		
-		d =  cell_distance(xbin, ybin, currXBin, currYBin);
+		//d =  cell_distance(xbin, ybin, currXBin, currYBin);
+		d = sqrt( (x-currX)*(x-currX) + (y-currY)*(y-currY) );
 		if(d < minE){
 			minE = d;
 		}		
